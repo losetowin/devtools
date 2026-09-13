@@ -4,6 +4,12 @@
 
 **在线使用：https://tools.dutycode.com**
 
+[![License](https://img.shields.io/github/license/losetowin/devtools)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-tools.dutycode.com-brightgreen)](https://tools.dutycode.com)
+[![GitHub Pages](https://img.shields.io/github/deployments/losetowin/devtools/github-pages?logo=github&label=GitHub%20Pages)](https://losetowin.github.io/devtools/)
+[![Pure Frontend](https://img.shields.io/badge/Pure%20Frontend-No%20Backend-ff69b4)](https://github.com/losetowin/devtools)
+[![Last Commit](https://img.shields.io/github/last-commit/losetowin/devtools)](https://github.com/losetowin/devtools)
+
 ## 工具列表
 
 | 工具 | 链接 | 说明 |
