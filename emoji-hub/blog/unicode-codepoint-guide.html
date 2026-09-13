@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>emoji Unicode 码点查询指南：U+1F600 怎么看、怎么用、怎么复制</title>
+<meta name="description" content="emoji Unicode 码点查询指南：U+1F600 是什么意思、码位与代理对如何换算、UTF-8/UTF-16 编码怎么算，附常见 emoji 码点对照表与在代码中插入 emoji 的方法。">
+<meta name="keywords" content="emoji Unicode 码点,U+1F600,emoji 码位,Unicode codepoint,emoji UTF-8 编码,emoji 代理对,emoji 查询">
+<link rel="canonical" href="https://tools.dutycode.com/emoji-hub/blog/unicode-codepoint-guide.html">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Emoji 大全">
+<meta property="og:title" content="emoji Unicode 码点查询指南：U+1F600 怎么看、怎么用、怎么复制">
+<meta property="og:description" content="U+1F600 等 emoji Unicode 码点的含义、换算方法与代码插入方式。">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"emoji Unicode 码点查询指南：U+1F600 怎么看、怎么用、怎么复制","description":"emoji Unicode 码点的含义、UTF-8/UTF-16 换算与代码插入方法。","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"https://tools.dutycode.com/emoji-hub/blog/unicode-codepoint-guide.html"},"author":{"@type":"Organization","name":"Emoji 大全 EmojiHub"},"publisher":{"@type":"Organization","name":"DevTools 工具索引"},"datePublished":"2026-09-13","dateModified":"2026-09-13"}</script>
+<style>
+body{font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;max-width:860px;margin:0 auto;padding:24px 20px 60px;color:#1f2937;line-height:1.8;background:#fff}
+.blog-nav{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 0 18px;border-bottom:1px solid #e5e7eb;margin-bottom:26px;font-size:14px;color:#6b7280}
+.blog-nav a{color:#2563eb;text-decoration:none}
+.blog-nav a:hover{text-decoration:underline}
+article h1{font-size:28px;line-height:1.4;margin:0 0 10px}
+.meta{font-size:13px;color:#9ca3af;margin-bottom:24px}
+article h2{font-size:20px;margin:30px 0 12px;padding-left:10px;border-left:4px solid #2563eb}
+article h3{font-size:16px;margin:20px 0 8px}
+article p{margin:10px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14.5px}
+th,td{border:1px solid #e5e7eb;padding:8px 12px;text-align:left}
+th{background:#f3f4f6}
+.emoji-big{font-size:26px}
+code{background:#f1f5f9;padding:1px 6px;border-radius:4px;font-size:13.5px}
+pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.7}
+ul,ol{margin:10px 0;padding-left:24px}
+.tip{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;margin:16px 0;font-size:14.5px}
+.blog-footer{margin-top:44px;padding-top:20px;border-top:1px solid #e5e7eb;font-size:13.5px;color:#6b7280;display:flex;flex-wrap:wrap;gap:8px 18px}
+.blog-footer a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="blog-nav"><a href="../index.html">← Emoji 大全首页</a><a href="emoji-shortcodes.html">emoji 短代码大全</a><a href="heart-colors.html">爱心 emoji 颜色含义</a><a href="work-emoji.html">工作场景 emoji</a></nav>
+<article>
+<h1>emoji Unicode 码点查询指南：U+1F600 怎么看、怎么用、怎么复制</h1>
+<p class="meta">Emoji 大全 · 2026-09-13</p>
+<p>每个 emoji 在 Unicode 标准里都有一个唯一编号，写作 <code>U+XXXXXX</code>，例如 😀 是 <strong>U+1F600</strong>。看懂这个编号，你就能在任何编程语言、数据库、前端代码里精确引用一个表情，而不只是复制粘贴。本文讲清码点怎么读、怎么换算、怎么用。</p>
+
+<h2>U+1F600 是什么意思</h2>
+<p><code>U+</code> 是 Unicode 的固定前缀，后面跟一个十六进制（Hex）数字。<code>U+1F600</code> 拆开看：</p>
+<ul>
+<li><strong>U+</strong>：表示「Unicode 码位（code point）」</li>
+<li><strong>1F600</strong>：十六进制编号，换算成十进制是 128512</li>
+<li>含义：它是 Unicode 标准里第 128512 个被收录的字符</li>
+</ul>
+<p>emoji 大多分布在 <strong>U+1F300 ~ U+1FAFF</strong> 区间（叫「补充多文种平面」SMP），所以常见 emoji 码点都长得像 U+1F600、U+1F389、U+2764 这样。</p>
+
+<h2>常见 emoji 码点对照表</h2>
+<table>
+<tr><th>emoji</th><th>码点</th><th>十进制</th><th>名称</th></tr>
+<tr><td class="emoji-big">😀</td><td>U+1F600</td><td>128512</td><td>GRINNING FACE</td></tr>
+<tr><td class="emoji-big">😂</td><td>U+1F602</td><td>128514</td><td>FACE WITH TEARS OF JOY</td></tr>
+<tr><td class="emoji-big">❤️</td><td>U+2764 + U+FE0F</td><td>10084 + 65039</td><td>HEAVY BLACK HEART</td></tr>
+<tr><td class="emoji-big">🔥</td><td>U+1F525</td><td>128293</td><td>FIRE</td></tr>
+<tr><td class="emoji-big">🎉</td><td>U+1F389</td><td>127881</td><td>PARTY POPPER</td></tr>
+<tr><td class="emoji-big">👍</td><td>U+1F44D</td><td>128077</td><td>THUMBS UP</td></tr>
+<tr><td class="emoji-big">🚀</td><td>U+1F680</td><td>128640</td><td>ROCKET</td></tr>
+<tr><td class="emoji-big">✨</td><td>U+2728</td><td>10088</td><td>SPARKLES</td></tr>
+</table>
+
+<h2>为什么有的 emoji 是两个码点</h2>
+<p>注意上表的 ❤️：它其实是 <code>U+2764</code>（黑色爱心符号）+ <code>U+FE0F</code>（变体选择符 VARIATION SELECTOR-16）。<code>U+FE0F</code> 的作用是「请用彩色 emoji 样式显示我」。少了它，有些系统会把 ❤ 显示成黑白符号 ❤。国旗、家庭、肤色 emoji 同理，由多个码点拼接（中间用零宽连接符 U+200D 连接）。</p>
+
+<h2>在代码里怎么用码点插入 emoji</h2>
+<h3>JavaScript</h3>
+<pre>// U+1F600 用 \u{} 表示
+const face = "\u{1F600}";   // 😀
+console.log(face);
+
+// 老语法不支持 {}，要写代理对
+const face2 = "\uD83D\uDE00"; // 同样是 😀</pre>
+
+<h3>Python</h3>
+<pre>face = "\U0001F600"   # 注意是大写 U + 8 位十六进制
+print(face)          # 😀
+# 反向查询
+print(hex(ord("😀"))) # 0x1f600</pre>
+
+<h3>HTML</h3>
+<pre>&amp;#x1F600;  →  😀
+&amp;#128512; →  😀   （十进制写法）</pre>
+
+<h2>UTF-8 字节长度怎么算</h2>
+<p>码点本身只是一个数字，落到磁盘上要用 UTF-8 编码。规则很简单：</p>
+<table>
+<tr><th>码点范围</th><th>UTF-8 字节数</th></tr>
+<tr><td>U+0000 ~ U+007F</td><td>1 字节</td></tr>
+<tr><td>U+0080 ~ U+07FF</td><td>2 字节</td></tr>
+<tr><td>U+0800 ~ U+FFFF</td><td>3 字节</td></tr>
+<tr><td>U+10000 ~ U+10FFFF</td><td>4 字节</td></tr>
+</table>
+<p>所以 😀（U+1F600）在 UTF-8 里占 <strong>4 个字节</strong>。这也是为什么有些旧数据库字段按「字符数」估算长度时会出问题——它其实是字节数。</p>
+
+<h2>怎么查一个 emoji 的码点</h2>
+<ol>
+<li>Mac：系统自带「字符显示程序」→ 选中字符即可看到码点</li>
+<li>Windows：设置 → 时间和语言 → 表情面板</li>
+<li>代码：<code>ord("😀")</code>（Python）或 <code>"😀".codePointAt(0).toString(16)</code>（JS）</li>
+<li>在线工具：直接在 <a href="../index.html">Emoji 大全 EmojiHub</a> 搜索表情，详情页同时显示码点、短代码和图形字符</li>
+</ol>
+
+<div class="tip">💡 复制 emoji 时建议连「图形字符 + 码点」一起记：图形字符给人看，码点给程序用。在 <a href="../index.html">Emoji 大全</a> 每个表情页都可一键复制这两者。</div>
+</article>
+<footer class="blog-footer">
+<a href="../index.html">Emoji 大全</a>
+<a href="../blog/emoji-shortcodes.html">emoji 短代码大全</a>
+<a href="../blog/heart-colors.html">爱心 emoji 颜色含义</a>
+<a href="https://tools.dutycode.com/json-tool/">JSON 格式化工具</a>
+<a href="https://tools.dutycode.com/password-gen/">在线随机密码生成器</a>
+<a href="https://tools.dutycode.com/">DevTools 工具索引</a>
+</footer>
+</body>
+</html>

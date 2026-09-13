@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON 转 YAML 在线转换：语法差异、转换规则与常见坑</title>
+<meta name="description" content="JSON 转 YAML 在线转换指南：两者语法差异、缩进/引号/注释/布尔值转换规则，以及冒号 key、多行字符串、null 等常见坑与避坑方法。">
+<meta name="keywords" content="JSON 转 YAML,JSON to YAML,YAML 语法,JSON YAML 区别,在线转换 YAML,YAML 缩进,配置文件 转换">
+<link rel="canonical" href="https://tools.dutycode.com/json-tool/blog/json-to-yaml.html">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="DevTools 工具集">
+<meta property="og:title" content="JSON 转 YAML 在线转换：语法差异、转换规则与常见坑">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"JSON 转 YAML 在线转换：语法差异、转换规则与常见坑","description":"JSON 与 YAML 的语法差异、转换规则与常见转换坑。","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"https://tools.dutycode.com/json-tool/blog/json-to-yaml.html"},"author":{"@type":"Organization","name":"JSON 格式化工具"},"publisher":{"@type":"Organization","name":"DevTools 工具索引"},"datePublished":"2026-09-13","dateModified":"2026-09-13"}</script>
+<style>
+body{font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;max-width:860px;margin:0 auto;padding:24px 20px 60px;color:#1f2937;line-height:1.8;background:#fff}
+.blog-nav{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 0 18px;border-bottom:1px solid #e5e7eb;margin-bottom:26px;font-size:14px;color:#6b7280}
+.blog-nav a{color:#2563eb;text-decoration:none}
+.blog-nav a:hover{text-decoration:underline}
+article h1{font-size:28px;line-height:1.4;margin:0 0 10px}
+.meta{font-size:13px;color:#9ca3af;margin-bottom:24px}
+article h2{font-size:20px;margin:30px 0 12px;padding-left:10px;border-left:4px solid #2563eb}
+article h3{font-size:16px;margin:20px 0 8px}
+article p{margin:10px 0}
+code{background:#f1f5f9;padding:1px 6px;border-radius:4px;font-size:13.5px}
+pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.7}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14.5px}
+th,td{border:1px solid #e5e7eb;padding:8px 12px;text-align:left}
+th{background:#f3f4f6}
+ul,ol{margin:10px 0;padding-left:24px}
+.tip{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;margin:16px 0;font-size:14.5px}
+.blog-footer{margin-top:44px;padding-top:20px;border-top:1px solid #e5e7eb;font-size:13.5px;color:#6b7280;display:flex;flex-wrap:wrap;gap:8px 18px}
+.blog-footer a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="blog-nav"><a href="../index.html">← JSON 格式化工具</a><a href="large-json-performance.html">大 JSON 卡顿优化</a><a href="json-errors.html">JSON 常见错误</a><a href="json5-vs-json.html">JSON5 vs JSON</a></nav>
+<article>
+<h1>JSON 转 YAML 在线转换：语法差异、转换规则与常见坑</h1>
+<p class="meta">JSON 格式化工具 · 2026-09-13</p>
+<p>YAML 是 JSON 的「超集」：任何合法 JSON 都是合法 YAML，但反过来不成立。把 API 返回的 JSON 转成 YAML 写进配置文件（docker-compose、k8s、GitHub Actions）非常常见，但直接复制粘贴十有八九踩坑。本文讲清转换规则和高频错误。</p>
+
+<h2>JSON 与 YAML 语法差异对照</h2>
+<table>
+<tr><th>特性</th><th>JSON</th><th>YAML</th></tr>
+<tr><td>对象写法</td><td><code>{"a": 1}</code></td><td><code>a: 1</code>（键值后加空格）</td></tr>
+<tr><td>数组写法</td><td><code>[1, 2, 3]</code></td><td>每行一个 <code>- 1</code></td></tr>
+<tr><td>字符串引号</td><td>必须双引号</td><td>一般不加引号，需要时加</td></tr>
+<tr><td>注释</td><td>不支持</td><td>支持 <code>#</code></td></tr>
+<tr><td>缩进</td><td>无所谓</td><td>敏感，必须空格，2 格常见</td></tr>
+<tr><td>多行字符串</td><td>用 <code>\n</code></td><td>支持 <code>|</code> 与 <code>&gt;</code></td></tr>
+</table>
+
+<h2>转换示例</h2>
+<pre>// 原始 JSON
+{
+  "name": "deploy",
+  "image": "nginx:1.25",
+  "ports": ["80:80", "443:443"],
+  "env": {"DEBUG": true, "LOG": null},
+  "args": ["--reload"]
+}</pre>
+
+<pre># 转换后的 YAML
+name: deploy
+image: nginx:1.25
+ports:
+  - "80:80"
+  - "443:443"
+env:
+  DEBUG: true
+  LOG: null
+args:
+  - --reload</pre>
+
+<h2>转换时必须遵守的规则</h2>
+<ol>
+<li><strong>键后面冒号必须跟一个空格</strong>：<code>name:deploy</code> 是错的，<code>name: deploy</code> 才对</li>
+<li><strong>统一缩进</strong>：同一层级用相同数量空格，禁止混用 Tab</li>
+<li><strong>数组项以 <code>-</code> 开头并对齐</strong>：<code>-</code> 后也要有空格</li>
+<li><strong>布尔与 null 小写</strong>：YAML 里是 <code>true</code> / <code>false</code> / <code>null</code>（虽然大写也能解析，但保持小写最稳）</li>
+</ol>
+
+<h2>常见踩坑</h2>
+<h3>1. 冒号出现在值里</h3>
+<p>值里带冒号会被误解析成键值对，必须加引号：</p>
+<pre># ❌ 报错
+command: echo: hello
+
+# ✅ 正确
+command: "echo: hello"</pre>
+
+<h3>2. 看起来像数字或布尔的字符串</h3>
+<p><code>port: "8080"</code> 与 <code>port: 8080</code> 类型不同；<code>flag: "yes"</code> 在 YAML 1.1 里会被解析成布尔 true。这类值统一加引号最保险。</p>
+
+<h3>3. 多行字符串</h3>
+<p>JSON 里用 <code>\n</code>，转成 YAML 推荐用块标量：<code>|</code> 保留换行、<code>&gt;</code> 折叠成一行：</p>
+<pre>script: |
+  echo "hello"
+  echo "world"</pre>
+
+<h3>4. 缩进错位</h3>
+<p>YAML 对缩进零容忍，少一个空格就解析失败。粘贴后先用 <code>yamllint</code> 或在线校验跑一遍。</p>
+
+<h3>5. 锚点与重复引用</h3>
+<p>YAML 支持 JSON 没有的「锚点复用」，这也是很多人转过来后喜欢它的原因：</p>
+<pre>defaults: &defaults
+  retries: 3
+  timeout: 5s
+
+api:
+  <<: *defaults   # 继承 defaults
+  path: /v1</pre>
+<p>注意这个特性 JSON 做不到，所以「YAML 转 JSON」时锚点会被展开成具体值，结构不变但少了抽象。</p>
+
+<h3>6. 日期与时间戳</h3>
+<p>YAML 会把 <code>2026-09-13</code> 直接解析成日期类型，而 JSON 里它只是字符串。跨系统传递时统一加引号写成 <code>"2026-09-13"</code>，避免接收方拿到的类型不是你预期的。</p>
+
+<div class="tip">💡 把 JSON 粘到 <a href="../index.html">JSON 格式化工具</a> 先校验一遍、确认结构无误后，再用「JSON 转 YAML」功能一键生成，避免手工复制引入缩进错误。</div>
+</article>
+<footer class="blog-footer">
+<a href="../index.html">JSON 格式化工具</a>
+<a href="../blog/large-json-performance.html">大 JSON 卡顿优化</a>
+<a href="../blog/json-errors.html">JSON 常见错误</a>
+<a href="../blog/jsonpath-cheatsheet.html">JSONPath 速查</a>
+<a href="https://tools.dutycode.com/emoji-hub/">Emoji 大全</a>
+<a href="https://tools.dutycode.com/password-gen/">在线随机密码生成器</a>
+<a href="https://tools.dutycode.com/">DevTools 工具索引</a>
+</footer>
+</body>
+</html>

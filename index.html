@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevTools 工具索引｜本地开发工具导航</title>
+<meta name="description" content="DevTools 工具索引页：汇集工作区自建的本地开发工具，包括 Emoji 大全 EmojiHub（全量 3781 个 Emoji 搜索与复制）与密码工坊 PassForge（纯本地随机密码生成器），点击卡片即可直接进入使用。">
+<meta name="keywords" content="DevTools,工具索引,开发工具,Emoji 大全,EmojiHub,密码生成器,PassForge,密码工坊,emoji 搜索,随机密码">
+<link rel="canonical" href="https://tools.dutycode.com/">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#0b1120">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DevTools 工具索引">
+<meta property="og:title" content="DevTools 工具索引｜本地开发工具导航">
+<meta property="og:description" content="工作区自建工具一站直达：Emoji 大全、密码工坊。">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="DevTools 工具索引｜本地开发工具导航">
+<meta name="twitter:description" content="工作区自建工具一站直达：Emoji 大全、密码工坊。">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "DevTools 工具索引",
+  "description": "工作区自建本地开发工具的统一入口：Emoji 大全、密码工坊。",
+  "inLanguage": "zh-CN",
+  "mainEntity": {
+    "@type": "ItemList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "item": {
+          "@type": "WebApplication",
+          "name": "Emoji 大全 EmojiHub",
+          "alternateName": "EmojiHub",
+          "url": "https://tools.dutycode.com/emoji-hub/",
+          "description": "收录 Unicode 16.0 全量 3781 个 Emoji，按官方 9 大分类与实用场景集合展示，支持中英文关键词搜索，点击即可复制 Emoji 字符、短代码与 Unicode 码点。",
+          "applicationCategory": "UtilitiesApplication",
+          "operatingSystem": "Any (Web browser)",
+          "isAccessibleForFree": true
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "item": {
+          "@type": "WebApplication",
+          "name": "密码工坊 PassForge",
+          "alternateName": "PassForge 密码生成器",
+          "url": "https://tools.dutycode.com/password-gen/",
+          "description": "纯本地随机密码生成器：长度可调、四类字符集自由组合、一键排除易错字符，支持助记密码模式，实时显示熵值与破解时间，剪贴板自动清除，数据零上传。",
+          "applicationCategory": "SecurityApplication",
+          "operatingSystem": "Any (Web browser)",
+          "isAccessibleForFree": true
+        }
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "item": {
+          "@type": "WebApplication",
+          "name": "JSON 格式化工具",
+          "alternateName": "JSON 工具站",
+          "url": "https://tools.dutycode.com/json-tool/",
+          "description": "纯本地 JSON 美化、压缩、校验与树形查看，支持 JSON5 宽松解析、JSONPath 查询、多段日志解析与前后对比，数据全程不出浏览器。",
+          "applicationCategory": "DeveloperApplication",
+          "operatingSystem": "Any (Web browser)",
+          "isAccessibleForFree": true
+        }
+      }
+    ]
+  }
+}
+</script>
+<style>
+:root{
+  --bg:#0b1120;
+  --bg-top:#0e1a30;
+  --surface:#131c30;
+  --surface-hi:#182443;
+  --line:#22304a;
+  --ink:#e8eef8;
+  --ink-soft:#b9c6dc;
+  --sub:#8fa3c0;
+  --accent:#2dd4bf;
+  --accent-ink:#0b2b26;
+  --accent-soft:rgba(45,212,191,.12);
+  --radius:16px;
+  --shadow:0 10px 30px rgba(2,8,20,.45);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *{transition:none!important;animation:none!important}
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+  background:
+    radial-gradient(1200px 500px at 85% -10%, rgba(45,212,191,.10), transparent 60%),
+    radial-gradient(900px 420px at -10% 8%, rgba(125,211,252,.08), transparent 55%),
+    linear-gradient(180deg, var(--bg-top), var(--bg) 340px);
+  background-color:var(--bg);
+  color:var(--ink);
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+/* 点阵背景：细密网格，低透明度，不干扰阅读 */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(rgba(148,168,200,.14) 1px, transparent 1px);
+  background-size:26px 26px;
+  mask-image:linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.25) 55%, transparent 90%);
+  -webkit-mask-image:linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.25) 55%, transparent 90%);
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+a{color:inherit}
+
+/* 跳转链接（无障碍） */
+.skip-link{
+  position:absolute;left:-9999px;top:0;z-index:200;
+  background:var(--accent);color:var(--accent-ink);font-weight:600;
+  padding:10px 18px;border-radius:0 0 10px 0;text-decoration:none;
+}
+.skip-link:focus{left:0}
+
+/* ===== 顶栏 ===== */
+.site-header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(11,17,32,.82);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(34,48,74,.7);
+}
+.header-inner{
+  max-width:1080px;margin:0 auto;padding:0 24px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:.2px}
+.brand-mark{
+  width:34px;height:34px;border-radius:10px;flex:none;
+  background:linear-gradient(135deg, #2dd4bf, #38bdf8);
+  display:grid;place-items:center;
+  box-shadow:0 4px 14px rgba(45,212,191,.35);
+}
+.brand-mark svg{width:20px;height:20px}
+.brand-name small{display:block;font-size:11px;font-weight:500;color:var(--sub);letter-spacing:.4px;line-height:1.2}
+.main-nav{display:flex;gap:6px}
+.main-nav a{
+  color:var(--ink-soft);text-decoration:none;font-size:14px;font-weight:500;
+  padding:7px 14px;border-radius:8px;transition:color .15s,background .15s;
+}
+.main-nav a:hover{color:var(--ink);background:rgba(255,255,255,.06)}
+.main-nav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ===== Hero ===== */
+.hero{padding:72px 0 40px}
+.hero h1{
+  font-size:clamp(28px, 4.6vw, 42px);
+  line-height:1.25;font-weight:800;letter-spacing:.5px;
+  max-width:18em;
+}
+.hero h1 .accent-word{color:var(--accent)}
+.hero .lead{
+  margin-top:14px;max-width:46em;color:var(--ink-soft);font-size:16.5px;
+}
+.hero .lead strong{color:var(--ink);font-weight:600}
+
+/* ===== 区块通用 ===== */
+section{padding:36px 0 44px}
+.section-head{display:flex;align-items:baseline;gap:14px;margin-bottom:22px}
+.section-head h2{font-size:20px;font-weight:700;letter-spacing:.3px}
+.section-head .section-note{color:var(--sub);font-size:13.5px}
+
+/* ===== 工具卡片 ===== */
+.tools-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+.tool-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
+  position:relative;overflow:hidden;
+}
+.tool-card::before{
+  content:"";position:absolute;inset:0 0 auto 0;height:3px;
+  background:linear-gradient(90deg, var(--accent), transparent 70%);
+  opacity:.85;
+}
+.tool-card:hover,.tool-card:focus-within{
+  transform:translateY(-3px);
+  border-color:rgba(45,212,191,.55);
+  background:var(--surface-hi);
+  box-shadow:var(--shadow);
+}
+.tool-card a.card-link{
+  display:block;padding:26px 26px 24px;text-decoration:none;color:inherit;
+}
+.tool-card a.card-link:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:var(--radius)}
+.tool-top{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.tool-icon{
+  width:52px;height:52px;border-radius:13px;flex:none;
+  display:grid;place-items:center;
+  background:var(--accent-soft);border:1px solid rgba(45,212,191,.3);
+}
+.tool-icon svg{width:26px;height:26px;stroke:var(--accent)}
+.tool-status{
+  font-size:12px;font-weight:600;letter-spacing:.4px;
+  color:var(--accent);background:var(--accent-soft);
+  padding:4px 10px;border-radius:999px;
+}
+.tool-card h3{font-size:21px;font-weight:700;margin-bottom:8px;letter-spacing:.2px}
+.tool-card .desc{color:var(--ink-soft);font-size:15px;line-height:1.75}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 20px}
+.tag{
+  font-size:12px;color:var(--sub);
+  border:1px solid var(--line);border-radius:999px;
+  padding:3px 11px;background:rgba(255,255,255,.03);
+}
+.tool-go{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:14.5px;font-weight:600;color:var(--accent);
+}
+.tool-go svg{width:15px;height:15px;transition:transform .18s ease}
+.tool-card:hover .tool-go svg{transform:translateX(4px)}
+
+/* ===== Footer ===== */
+.site-footer{
+  border-top:1px solid var(--line);
+  margin-top:36px;padding:30px 0 40px;
+  background:rgba(11,17,32,.6);
+}
+.footer-inner{
+  max-width:1080px;margin:0 auto;padding:0 24px;
+  display:flex;flex-wrap:wrap;gap:12px 32px;align-items:baseline;justify-content:space-between;
+  color:var(--sub);font-size:13px;
+}
+.footer-inner strong{color:var(--ink-soft);font-weight:600}
+
+/* ===== 响应式 ===== */
+@media (max-width:760px){
+  .hero{padding:48px 0 30px}
+  section{padding:28px 0 32px}
+  .tools-grid{grid-template-columns:1fr}
+  .header-inner{height:58px}
+  .main-nav a{padding:7px 10px;font-size:13.5px}
+  .tool-card a.card-link{padding:22px 20px 20px}
+  .tool-card h3{font-size:19px}
+  .footer-inner{flex-direction:column;gap:8px}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#06231f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v3M5.6 5.6l2.1 2.1M3 12h3M18.4 5.6l-2.1 2.1M21 12h-3M12 18v3M5.6 18.4l2.1-2.1M18.4 18.4l-2.1-2.1"/>
+          <circle cx="12" cy="12" r="3.2"/>
+        </svg>
+      </span>
+      <span class="brand-name">DevTools<small>工具索引</small></span>
+    </div>
+    <nav class="main-nav" aria-label="页面导航">
+      <a href="#tools">工具</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+
+    <section class="hero" aria-labelledby="page-title">
+      <h1 id="page-title">免费在线开发工具，<span class="accent-word">打开即用</span></h1>
+      <p class="lead">这是本工作区自建工具的统一入口。<strong>Emoji 大全</strong>与<strong>密码工坊</strong>是两个可直接打开使用的在线工具，点击卡片即可进入。</p>
+    </section>
+
+    <section id="tools" aria-labelledby="tools-title">
+      <div class="section-head">
+        <h2 id="tools-title">工具</h2>
+        <span class="section-note">可直接使用的本地工具，点击进入</span>
+      </div>
+      <div class="tools-grid">
+
+        <article class="tool-card">
+          <a class="card-link" href="emoji-hub/index.html">
+            <div class="tool-top">
+              <span class="tool-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9"/>
+                  <path d="M8.5 14.2c.9 1 2.1 1.6 3.5 1.6s2.6-.6 3.5-1.6"/>
+                  <path d="M9 9.5h.01M15 9.5h.01"/>
+                </svg>
+              </span>
+              <span class="tool-status">在线工具</span>
+            </div>
+            <h3>Emoji 大全 EmojiHub</h3>
+            <p class="desc">收录 Unicode 16.0 全量 3781 个 Emoji，按官方 9 大分类与实用场景集合展示，支持中英文关键词搜索，点击即可复制 Emoji 字符、短代码与 Unicode 码点。</p>
+            <ul class="tags" aria-label="功能特点">
+              <li class="tag">3781 个 Emoji</li>
+              <li class="tag">中英文搜索</li>
+              <li class="tag">4 套主题</li>
+              <li class="tag">纯静态</li>
+            </ul>
+            <span class="tool-go">
+              打开 Emoji 大全
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </a>
+        </article>
+
+        <article class="tool-card">
+          <a class="card-link" href="password-gen/index.html">
+            <div class="tool-top">
+              <span class="tool-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="8" cy="15" r="4.5"/>
+                  <path d="M11.2 11.8L20 3M15.5 7.5l3 3M13 10l2 2"/>
+                </svg>
+              </span>
+              <span class="tool-status">在线工具</span>
+            </div>
+            <h3>密码工坊 PassForge</h3>
+            <p class="desc">纯本地随机密码生成器：长度可调、四类字符集自由组合、一键排除易错字符，支持助记密码模式，实时显示熵值与破解时间，剪贴板自动清除，数据零上传。</p>
+            <ul class="tags" aria-label="功能特点">
+              <li class="tag">纯本地生成</li>
+              <li class="tag">熵值估算</li>
+              <li class="tag">助记密码</li>
+              <li class="tag">零上传</li>
+            </ul>
+            <span class="tool-go">
+              打开密码工坊
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </a>
+        </article>
+
+        <article class="tool-card">
+          <a class="card-link" href="json-tool/index.html">
+            <div class="tool-top">
+              <span class="tool-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8.2 3.5c-1.6 0-2.4.9-2.4 2.5V8c0 1.6-.7 2.4-2.2 2.5 1.5.1 2.2.9 2.2 2.5v2c0 1.6.8 2.5 2.4 2.5"/>
+                  <path d="M15.8 3.5c1.6 0 2.4.9 2.4 2.5V8c0 1.6.7 2.4 2.2 2.5-1.5.1-2.2.9-2.2 2.5v2c0 1.6-.8 2.5-2.4 2.5"/>
+                </svg>
+              </span>
+              <span class="tool-status">在线工具</span>
+            </div>
+            <h3>JSON 格式化工具</h3>
+            <p class="desc">纯本地 JSON 美化、压缩、校验与树形查看，支持 JSON5 宽松解析、JSONPath 查询、多段日志解析与前后对比，配置可一键分享，数据全程不出浏览器。</p>
+            <ul class="tags" aria-label="功能特点">
+              <li class="tag">JSON5 解析</li>
+              <li class="tag">JSONPath 查询</li>
+              <li class="tag">前后对比</li>
+              <li class="tag">纯本地</li>
+            </ul>
+            <span class="tool-go">
+              打开 JSON 工具
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </a>
+        </article>
+
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p><strong>DevTools 工具索引</strong> · 工作区自建工具统一入口</p>
+    <p style="display:flex;flex-wrap:wrap;gap:6px 16px">
+      <a href="https://tools.dutycode.com/emoji-hub/">Emoji 大全</a>
+      <a href="https://tools.dutycode.com/json-tool/">JSON 格式化工具</a>
+      <a href="https://tools.dutycode.com/password-gen/">在线随机密码生成器</a>
+    </p>
+    <p>所有工具纯本地运行，数据不出浏览器，可直接在线使用</p>
+  </div>
+</footer>
+</body>
+</html>

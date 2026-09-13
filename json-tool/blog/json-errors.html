@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON 常见错误 10 种：Unexpected token 等报错原因与修复方法</title>
+<meta name="description" content="JSON 报错 Unexpected token 等 10 种常见错误详解：末尾多余逗号、单引号、注释、BOM、转义错误、类型不匹配等，附错误示例、原因分析与修复方法，在线校验一步定位行列。">
+<meta name="keywords" content="JSON 报错,Unexpected token,JSON 校验失败,JSON 格式错误,JSON 解析错误,JSON 常见错误">
+<link rel="canonical" href="https://tools.dutycode.com/json-tool/blog/json-errors.html">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="DevTools 工具集">
+<meta property="og:title" content="JSON 常见错误 10 种：Unexpected token 等报错原因与修复方法">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"JSON 常见错误 10 种：Unexpected token 等报错原因与修复方法","description":"10 种高频 JSON 解析错误的示例、原因与修复方法。","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"https://tools.dutycode.com/json-tool/blog/json-errors.html"},"author":{"@type":"Organization","name":"JSON 格式化工具"},"publisher":{"@type":"Organization","name":"DevTools 工具索引"},"datePublished":"2026-09-13","dateModified":"2026-09-13"}</script>
+<style>
+body{font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;max-width:860px;margin:0 auto;padding:24px 20px 60px;color:#1f2937;line-height:1.8;background:#fff}
+.blog-nav{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 0 18px;border-bottom:1px solid #e5e7eb;margin-bottom:26px;font-size:14px;color:#6b7280}
+.blog-nav a{color:#2563eb;text-decoration:none}
+.blog-nav a:hover{text-decoration:underline}
+article h1{font-size:28px;line-height:1.4;margin:0 0 10px}
+.meta{font-size:13px;color:#9ca3af;margin-bottom:24px}
+article h2{font-size:20px;margin:30px 0 12px;padding-left:10px;border-left:4px solid #2563eb}
+article p{margin:10px 0}
+code{background:#f1f5f9;padding:1px 6px;border-radius:4px;font-size:13.5px}
+pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.7}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14.5px}
+th,td{border:1px solid #e5e7eb;padding:8px 12px;text-align:left}
+th{background:#f3f4f6}
+.tip{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;margin:16px 0;font-size:14.5px}
+.blog-footer{margin-top:44px;padding-top:20px;border-top:1px solid #e5e7eb;font-size:13.5px;color:#6b7280;display:flex;flex-wrap:wrap;gap:8px 18px}
+.blog-footer a{color:#2563eb;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="blog-nav"><a href="../index.html">← JSON 格式化工具</a><a href="jsonpath-cheatsheet.html">JSONPath 速查</a><a href="json5-vs-json.html">JSON5 vs JSON</a></nav>
+<article>
+<h1>JSON 常见错误 10 种：Unexpected token 等报错原因与修复方法</h1>
+<p class="meta">JSON 格式化工具 · 2026-09-13</p>
+<p>JSON 报错几乎都来自同一个根因：<strong>不是合法 JSON 文本</strong>。下面是 10 种最高频的错误，附示例和修复方法。遇到 `Unexpected token` 时，先看报错位置，再对照本清单逐项排查。</p>
+
+<h2>10 种高频错误对照表</h2>
+<table>
+<tr><th>#</th><th>错误特征</th><th>典型报错</th><th>修复</th></tr>
+<tr><td>1</td><td>末尾多余逗号</td><td>Unexpected token }</td><td>删除最后一个键值对后的逗号</td></tr>
+<tr><td>2</td><td>键或字符串用了单引号</td><td>Unexpected token '</td><td>全部改为双引号</td></tr>
+<tr><td>3</td><td>混入注释</td><td>Unexpected token /</td><td>删除 <code>//</code> 或 <code>/* */</code>（JSON 不支持注释）</td></tr>
+<tr><td>4</td><td>文件开头有 BOM 或空白</td><td>Unexpected token</td><td>以 UTF-8 无 BOM 保存</td></tr>
+<tr><td>5</td><td>字符串内非法转义</td><td>Bad escaped character</td><td>只使用 <code>\</code> " / b f n r t uXXXX</td></tr>
+<tr><td>6</td><td>控制字符未转义（换行在字符串里）</td><td>Unexpected token</td><td>换行写成 <code>\n</code></td></tr>
+<tr><td>7</td><td>值类型错误（NaN/Infinity/undefined）</td><td>Unexpected token N</td><td>JSON 只允许字符串/数字/布尔/null/数组/对象</td></tr>
+<tr><td>8</td><td>数字格式非法（前导零、.5）</td><td>Unexpected number</td><td>写成 <code>0.5</code></td></tr>
+<tr><td>9</td><td>缺逗号或多逗号</td><td>Unexpected string</td><td>键值对之间恰好一个逗号</td></tr>
+<tr><td>10</td><td>括号/引号不配对</td><td>Unexpected end of input</td><td>用带行列提示的校验工具定位</td></tr>
+</table>
+
+<h2>错误示例与修复</h2>
+<pre>// ❌ 错误：单引号 + 末尾逗号 + 注释
+{'name': 'tom', 'age': 30,} // 用户信息
+
+// ✅ 正确
+{"name": "tom", "age": 30}</pre>
+
+<h2>实用排查顺序</h2>
+<ol>
+<li>先看报错行列号指向的位置，90% 的错误就在附近</li>
+<li>检查引号：JSON 只认双引号</li>
+<li>检查逗号：最后一个元素后不能有逗号</li>
+<li>检查注释与单引号（很多人把 JS 对象写法直接当 JSON 用）</li>
+<li>用在线校验工具复验</li>
+</ol>
+
+<div class="tip">💡 用 <a href="../index.html">JSON 格式化工具</a> 的「校验」功能，会自动定位到错误行列并高亮原因；「压缩」可一键去除多余空格；日志多段解析可直接处理拼接日志。</div>
+</article>
+<footer class="blog-footer">
+<a href="../index.html">JSON 格式化工具</a>
+<a href="../blog/jsonpath-cheatsheet.html">JSONPath 速查</a>
+<a href="../blog/json5-vs-json.html">JSON5 vs JSON</a>
+<a href="https://tools.dutycode.com/emoji-hub/">Emoji 大全</a>
+<a href="https://tools.dutycode.com/password-gen/">在线随机密码生成器</a>
+<a href="https://tools.dutycode.com/">DevTools 工具索引</a>
+</footer>
+</body>
+</html>

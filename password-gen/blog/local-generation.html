@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>纯本地密码生成原理：为什么密码生成器不该联网上传</title>
+<meta name="description" content="纯本地密码生成原理详解：Web Crypto API 加密安全随机数、零网络请求、剪贴板自动清除、助记密码派生流程。解释为什么可信的密码生成器应该在浏览器本地完成全部计算。">
+<meta name="keywords" content="本地密码生成,密码生成原理,Web Crypto,随机数生成,安全密码生成 不上传,密码零上传">
+<link rel="canonical" href="https://tools.dutycode.com/password-gen/blog/local-generation.html">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="密码工坊 PassForge">
+<meta property="og:title" content="纯本地密码生成原理：为什么密码生成器不该联网上传">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"纯本地密码生成原理：为什么密码生成器不该联网上传","description":"浏览器本地生成密码的技术原理与安全收益。","inLanguage":"zh-CN","mainEntityOfPage":{"@type":"WebPage","@id":"https://tools.dutycode.com/password-gen/blog/local-generation.html"},"author":{"@type":"Organization","name":"密码工坊 PassForge"},"publisher":{"@type":"Organization","name":"DevTools 工具索引"},"datePublished":"2026-09-13","dateModified":"2026-09-13"}</script>
+<style>
+body{font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;max-width:860px;margin:0 auto;padding:24px 20px 60px;color:#1f2937;line-height:1.8;background:#fff}
+.blog-nav{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 0 18px;border-bottom:1px solid #e5e7eb;margin-bottom:26px;font-size:14px;color:#6b7280}
+.blog-nav a{color:#2563eb;text-decoration:none}
+.blog-nav a:hover{text-decoration:underline}
+article h1{font-size:28px;line-height:1.4;margin:0 0 10px}
+.meta{font-size:13px;color:#9ca3af;margin-bottom:24px}
+article h2{font-size:20px;margin:30px 0 12px;padding-left:10px;border-left:4px solid #0e7c72}
+article p{margin:10px 0}
+code{background:#f1f5f9;padding:1px 6px;border-radius:4px;font-size:13.5px}
+pre{background:#0f172a;color:#e2e8f0;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:13.5px;line-height:1.7}
+.tip{background:#e3f2ef;border:1px solid #99f6e4;border-radius:8px;padding:12px 16px;margin:16px 0;font-size:14.5px}
+.warn{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;margin:16px 0;font-size:14.5px}
+.blog-footer{margin-top:44px;padding-top:20px;border-top:1px solid #e5e7eb;font-size:13.5px;color:#6b7280;display:flex;flex-wrap:wrap;gap:8px 18px}
+.blog-footer a{color:#0e7c72;text-decoration:none}
+</style>
+</head>
+<body>
+<nav class="blog-nav"><a href="../index.html">← 密码工坊首页</a><a href="password-entropy.html">密码熵值对照</a><a href="weak-passwords.html">弱密码 Top100</a></nav>
+<article>
+<h1>纯本地密码生成原理：为什么密码生成器不该联网上传</h1>
+<p class="meta">密码工坊 PassForge · 2026-09-13</p>
+<p>你在网页上生成的密码，理论上都可以被网站服务器看到。所以判断一个密码生成器是否可信，第一个问题不是「密码够不够随机」，而是：<strong>它联网了吗？</strong></p>
+
+<h2>「纯本地」具体指什么</h2>
+<ul>
+<li><strong>随机数来源</strong>：使用浏览器 <code>Web Crypto API</code>（crypto.getRandomValues），操作系统级加密安全随机源，不是 <code>Math.random()</code></li>
+<li><strong>零网络请求</strong>：整页静态资源加载完成后，页面不再发出任何请求，断网也能用</li>
+<li><strong>剪贴板自动清除</strong>：复制后按设定时间自动清空，防止他人在共用电脑上读到</li>
+</ul>
+
+<h2>为什么不用 Math.random()</h2>
+<p><code>Math.random()</code> 是伪随机数，可被预测；密码生成必须用加密安全随机数。区别在于：前者适合游戏抽奖，后者才适合密钥材料。</p>
+
+<h2>助记密码是怎么派生的</h2>
+<pre>随机词库选词 → 组合成短语 → 可选自定义短语
+→ SHA-256 哈希派生 → 满足长度/字符集要求输出</pre>
+<p>助记密码的核心是「用可记忆的单词承载高熵」，4-6 个随机词组合的熵值通常不低于 12 位随机字符。</p>
+
+<div class="warn">⚠️ 警惕「在线密码生成 + 保存到云端」的服务：一旦服务方数据库泄露，等于把你的密码库拱手相送。可信做法是本地生成、本地保存（密码管理器加密存储）。</div>
+
+<div class="tip">💡 用 <a href="../index.html">密码工坊</a> 生成后，可在开发者工具 Network 面板验证：生成过程无任何网络请求。</div>
+</article>
+<footer class="blog-footer">
+<a href="../index.html">密码工坊首页</a>
+<a href="../blog/password-entropy.html">密码熵值对照</a>
+<a href="../blog/weak-passwords.html">弱密码 Top100</a>
+<a href="https://tools.dutycode.com/emoji-hub/">Emoji 大全</a>
+<a href="https://tools.dutycode.com/json-tool/">JSON 格式化工具</a>
+<a href="https://tools.dutycode.com/">DevTools 工具索引</a>
+</footer>
+</body>
+</html>

@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JSON 工具站 · 纯本地</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#eef2f7;--panel:#ffffff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;
+  --accent:#2563eb;--accent-soft:#eff6ff;--ok:#16a34a;--err:#dc2626;--warn:#b45309;
+  --header:#0f172a;--header-line:#1e293b;
+}
+html,body{margin:0;padding:0;height:100%}
+body{background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column}
+code,pre,textarea,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+button{font:inherit;cursor:pointer}
+svg{display:block}
+
+/* ===== 顶栏 ===== */
+.top{background:var(--header);color:#e2e8f0;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 16px}
+.brand{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;color:#fff}
+.brand .logo{width:26px;height:26px;border-radius:7px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff}
+.badge{font-size:12px;font-weight:400;color:#94a3b8;border:1px solid #334155;border-radius:999px;padding:1px 8px}
+.tabs{display:flex;background:var(--header-line);border-radius:9px;padding:3px;gap:2px}
+.tab{border:0;background:transparent;color:#94a3b8;padding:6px 16px;border-radius:7px;font-size:14px}
+.tab:hover{color:#e2e8f0}
+.tab.active{background:var(--accent);color:#fff;font-weight:600}
+.actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--header-line);color:#e2e8f0;border:1px solid #334155;border-radius:8px;padding:6px 10px;font-size:13px}
+.btn:hover{background:#334155}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ===== 配置条 ===== */
+.cfgbar{background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:8px 16px;font-size:13px}
+.cfgbar label{display:inline-flex;align-items:center;gap:5px;color:var(--muted)}
+.cfgbar select{border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--text);padding:4px 6px;font-size:13px}
+.cfgbar .chk{cursor:pointer;color:var(--text);user-select:none}
+.cfgbar .chk input{accent-color:var(--accent)}
+.cfg-note{color:var(--muted);font-size:12px;margin-left:auto}
+#btnShare{background:var(--accent-soft);color:var(--accent);border:1px solid #bfdbfe;border-radius:7px;padding:4px 10px;font-size:13px}
+#btnShare:hover{background:#dbeafe}
+
+/* ===== 主区 ===== */
+.main{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px 16px}
+.pane{background:var(--panel);border:1px solid var(--border);border-radius:12px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.pane-head{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);font-weight:600;font-size:13px}
+.pane-head .muted{margin-left:auto;font-weight:400;color:var(--muted);font-size:12px}
+#input{flex:1;min-height:0;resize:none;border:0;outline:0;padding:12px;background:var(--code-bg);color:var(--text);font-size:13px;line-height:1.6;tab-size:2}
+.out-body{flex:1;min-height:0;overflow:auto;background:var(--code-bg);position:relative}
+.out-body pre{margin:0;padding:12px;font-size:13px;line-height:1.6;white-space:pre;color:var(--text)}
+.drop-on{outline:2px dashed var(--accent);outline-offset:-2px}
+.dragging .pane#paneIn{outline:2px dashed var(--accent);outline-offset:-2px}
+.busy{position:absolute;inset:0;background:rgba(255,255,255,.72);display:none;align-items:center;justify-content:center;color:var(--muted);font-size:14px;z-index:5}
+.busy.show{display:flex}
+.spin{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:rot .8s linear infinite;margin-right:8px}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* 输出语法高亮 */
+.t-key{color:#0969da;font-weight:600}
+.t-str{color:#116329}
+.t-num{color:#9a6700}
+.t-lit{color:#cf222e}
+.t-pun{color:#6b7280}
+
+/* 树形视图 */
+.tv{font-size:13px;line-height:1.7;padding:10px 6px;white-space:nowrap}
+.tv-row{display:flex;align-items:center;gap:4px;border-radius:5px}
+.tv-row:hover{background:#e8eef7}
+.tv-toggle{width:18px;height:18px;flex:0 0 18px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;border-radius:4px;user-select:none;font-size:11px}
+.tv-toggle:hover{background:#dbe6f5;color:var(--accent)}
+.tv-toggle.leaf{visibility:hidden;cursor:default}
+.tv-k{color:#0969da}
+.tv-p{color:#6b7280}
+.tv-sum{color:var(--muted);font-size:12px}
+.tv-more{border:1px solid var(--border);background:#fff;color:var(--accent);border-radius:6px;padding:2px 10px;font-size:12px;margin:2px 0 2px 26px}
+.tv-more:hover{background:var(--accent-soft)}
+.tv-ch{margin-left:0}
+.tv-empty{color:var(--muted);font-size:12px}
+
+/* 校验结果卡片 */
+.result-card{margin:16px;padding:14px 16px;border-radius:10px;display:flex;gap:12px;align-items:flex-start}
+.result-card.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d}
+.result-card.err{background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d}
+.result-card .ic{flex:0 0 auto;margin-top:2px}
+.result-card h3{margin:0 0 4px;font-size:15px}
+.result-card p{margin:2px 0;font-size:13px}
+.result-card pre{margin:8px 0 0;background:rgba(255,255,255,.7);border:1px solid rgba(0,0,0,.08);border-radius:8px;padding:8px 10px;white-space:pre-wrap;word-break:break-all;font-size:12px}
+.link-btn{display:inline-flex;align-items:center;gap:5px;border:1px solid currentColor;border-radius:7px;background:transparent;padding:3px 10px;font-size:12px;margin-top:8px}
+.link-btn:hover{background:rgba(0,0,0,.05)}
+
+/* 空状态 */
+.empty-hint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);pointer-events:none;text-align:center;padding:20px}
+.empty-hint b{color:#475569;font-size:15px}
+.empty-hint .mini{font-size:12px}
+
+/* 状态栏 */
+.status{background:var(--panel);border-top:1px solid var(--border);display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:8px 16px;font-size:12px;color:var(--muted)}
+.status .chip{display:inline-flex;gap:5px;align-items:center}
+.status .chip b{color:var(--text);font-weight:600}
+#errorBar{display:none;width:100%;color:var(--err);background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:6px 10px;font-size:12px}
+#errorBar.show{display:block}
+
+/* 分块加载条 */
+#chunkBar{display:none;text-align:center;padding:8px;border-top:1px solid var(--border);background:#fff}
+#chunkBar.show{display:block}
+#chunkBar button{border:1px solid var(--border);background:#fff;color:var(--accent);border-radius:8px;padding:5px 16px;font-size:13px}
+#chunkBar button:hover{background:var(--accent-soft)}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--header);color:#fff;padding:8px 18px;border-radius:9px;font-size:13px;opacity:0;pointer-events:none;transition:all .2s;z-index:99;max-width:80vw}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width:880px){
+  .main{grid-template-columns:1fr;grid-template-rows:minmax(300px,45vh) minmax(300px,45vh);padding:10px}
+  .actions .btn span.lbl{display:none}
+  .cfg-note{display:none}
+}
+@media (max-width:640px){
+  #input,.out-body pre,.tv{font-size:15px}
+  #input{font-size:16px}
+  .status{font-size:13px}
+  .empty-hint .mini{font-size:13px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <span class="logo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3L4 7l4 4"/><path d="M16 3l4 4-4 4"/><path d="M12 3l-2 18"/></svg></span>
+    JSON 工具站 <span class="badge">纯本地 · 离线可用</span>
+  </div>
+  <nav class="tabs" id="tabs" role="tablist">
+    <button class="tab active" data-view="beautify" role="tab">美化</button>
+    <button class="tab" data-view="minify" role="tab">压缩</button>
+    <button class="tab" data-view="validate" role="tab">校验</button>
+    <button class="tab" data-view="tree" role="tab">树形</button>
+  </nav>
+  <div class="actions">
+    <button class="btn" id="btnOpen" title="打开本地文件"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="lbl">打开文件</span></button>
+    <button class="btn" id="btnSample" title="载入示例数据"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg><span class="lbl">示例</span></button>
+    <button class="btn" id="btnClear" title="清空输入"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg><span class="lbl">清空</span></button>
+    <button class="btn" id="btnCopy" title="复制当前输出"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span class="lbl">复制</span></button>
+    <button class="btn" id="btnDownload" title="下载为 .json"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg><span class="lbl">下载</span></button>
+  </div>
+  <input type="file" id="fileInput" hidden accept=".json,.txt,application/json,text/plain">
+</header>
+
+<section class="cfgbar" id="cfgbar">
+  <label>解析 <select id="cfgParser">
+    <option value="strict">严格 JSON</option>
+    <option value="json5">宽松 JSON5（注释/单引号/尾逗号）</option>
+  </select></label>
+  <label>缩进 <select id="cfgIndent">
+    <option value="2">2 空格</option>
+    <option value="4">4 空格</option>
+    <option value="1">1 空格</option>
+    <option value="tab">Tab</option>
+  </select></label>
+  <label>换行 <select id="cfgEol">
+    <option value="lf">LF</option>
+    <option value="crlf">CRLF</option>
+  </select></label>
+  <label>尾逗号 <select id="cfgTrailing">
+    <option value="none">无</option>
+    <option value="multi">多行对象</option>
+  </select></label>
+  <label>键排序 <select id="cfgSort">
+    <option value="none">原序</option>
+    <option value="alpha">字母序（递归）</option>
+  </select></label>
+  <label>Unicode <select id="cfgUnicode">
+    <option value="unicode">原文显示</option>
+    <option value="ascii">\uXXXX 转义</option>
+  </select></label>
+  <label class="chk"><input type="checkbox" id="cfgLog"> 多段日志模式</label>
+  <span class="cfg-note">配置自动保存 · 可复制分享链接</span>
+  <button id="btnShare">分享配置链接</button>
+</section>
+
+<main class="main">
+  <section class="pane" id="paneIn">
+    <div class="pane-head"><span>输入</span><span class="muted" id="fileInfo"></span></div>
+    <textarea id="input" spellcheck="false" placeholder="粘贴 JSON，或把 .json / .txt 文件拖到这里，Ctrl/⌘+Enter 立即执行"></textarea>
+  </section>
+  <section class="pane" id="paneOut">
+    <div class="pane-head"><span id="outTitle">美化结果</span><span class="muted" id="outMeta"></span></div>
+    <div class="out-body" id="outBody">
+      <div class="empty-hint" id="emptyHint"><b>输入 JSON 后自动处理</b><span class="mini">或点击「示例」快速体验 · 数据全程不出浏览器</span></div>
+      <div class="busy" id="busy"><span class="spin"></span>处理中…</div>
+    </div>
+    <div id="chunkBar"></div>
+  </section>
+</main>
+
+<footer class="status">
+  <span class="chip">节点 <b id="stNodes">-</b></span>
+  <span class="chip">键 <b id="stKeys">-</b></span>
+  <span class="chip">深度 <b id="stDepth">-</b></span>
+  <span class="chip">输入 <b id="stIn">-</b></span>
+  <span class="chip">输出 <b id="stOut">-</b></span>
+  <span class="chip">压缩率 <b id="stRatio">-</b></span>
+  <span class="chip">耗时 <b id="stTime">-</b></span>
+  <div id="errorBar"></div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+/* ===== 核心引擎（纯函数，可注入 Web Worker） ===== */
+//__ENGINE_START__
+function engineRun(task){
+  'use strict';
+  var SRC = String(task.input || '').replace(/^\uFEFF/, '');
+  var cfg = task.cfg || {};
+  var JSON5 = cfg.parser === 'json5';
+
+  function ParseError(message, line, col){
+    var e = new Error(message);
+    e.line = line; e.col = col;
+    return e;
+  }
+
+  /* ---------- 解析器：递归下降，精确行列错误 ---------- */
+  function Parser(src, json5){
+    var i = 0, n = src.length, line = 1, col = 1;
+    function peek(){ return src[i]; }
+    function adv(){
+      var c = src[i]; i++;
+      if(c === '\n'){ line++; col = 1; } else { col++; }
+      return c;
+    }
+    function isDigit(c){ return c >= '0' && c <= '9'; }
+    function err(msg){ throw ParseError(msg, line, col); }
+    function startsWith(s){
+      if(src.substr(i, s.length) !== s) return false;
+      for(var k = 0; k < s.length; k++) adv();
+      return true;
+    }
+    function skipWs(){
+      while(i < n){
+        var c = src[i];
+        if(c === ' ' || c === '\t' || c === '\n' || c === '\r'){ adv(); }
+        else if(json5 && c === '/' && src[i+1] === '/'){ while(i < n && src[i] !== '\n') adv(); }
+        else if(json5 && c === '/' && src[i+1] === '*'){
+          adv(); adv(); var closed = false;
+          while(i < n){ if(src[i] === '*' && src[i+1] === '/'){ adv(); adv(); closed = true; break; } adv(); }
+          if(!closed) err('块注释未闭合');
+        }
+        else break;
+      }
+    }
+    function hexVal(c){
+      if(c >= '0' && c <= '9') return c.charCodeAt(0) - 48;
+      if(c >= 'a' && c <= 'f') return c.charCodeAt(0) - 87;
+      if(c >= 'A' && c <= 'F') return c.charCodeAt(0) - 55;
+      return -1;
+    }
+    function parseString(single){
+      adv(); // 引号
+      var out = '';
+      while(i < n){
+        var c = src[i];
+        if(c === (single ? "'" : '"')){ adv(); return out; }
+        if(c === '\\'){
+          adv();
+          if(i >= n) err('字符串转义不完整');
+          var e = src[i];
+          switch(e){
+            case '"': out += '"'; adv(); break;
+            case "'": out += "'"; adv(); break;
+            case '\\': out += '\\'; adv(); break;
+            case '/': out += '/'; adv(); break;
+            case 'b': out += '\b'; adv(); break;
+            case 'f': out += '\f'; adv(); break;
+            case 'n': out += '\n'; adv(); break;
+            case 'r': out += '\r'; adv(); break;
+            case 't': out += '\t'; adv(); break;
+            case 'v': if(json5){ out += '\v'; adv(); } else err('非法转义 \\v'); break;
+            case '0': if(json5){ out += '\0'; adv(); } else err('非法转义 \\0'); break;
+            case 'x':
+              if(!json5) err('非法转义 \\x');
+              adv();
+              var h1 = hexVal(src[i]); if(h1 < 0) err('非法 \\x 转义'); adv();
+              var h2 = hexVal(src[i]); if(h2 < 0) err('非法 \\x 转义'); adv();
+              out += String.fromCharCode(h1 * 16 + h2);
+              break;
+            case 'u': out += readUnicode(); break;
+            case '\n': if(json5){ adv(); } else err('字符串不能包含未转义换行'); break;
+            case '\r': if(json5){ adv(); if(src[i] === '\n') adv(); } else err('字符串不能包含未转义换行'); break;
+            default: err('非法转义 \\' + e);
+          }
+          continue;
+        }
+        if(c === '\n' || c === '\r'){ if(!json5) err('字符串不能包含未转义换行'); }
+        if(c.charCodeAt(0) < 0x20 && !json5) err('字符串包含未转义的控制字符');
+        out += adv();
+      }
+      err('字符串未闭合');
+    }
+    function readUnicode(){
+      adv(); // u
+      var code = 0;
+      for(var k = 0; k < 4; k++){
+        if(i >= n) err('\\u 转义不完整');
+        var v = hexVal(src[i]); adv();
+        if(v < 0) err('非法 \\u 转义');
+        code = code * 16 + v;
+      }
+      if(code >= 0xD800 && code <= 0xDBFF){
+        if(src[i] === '\\' && src[i+1] === 'u'){
+          var save = i, sl = line, sc = col;
+          adv(); adv();
+          var lo = 0, ok = true;
+          for(var k2 = 0; k2 < 4; k2++){
+            if(i >= n){ ok = false; break; }
+            var v2 = hexVal(src[i]); adv();
+            if(v2 < 0){ ok = false; break; }
+            lo = lo * 16 + v2;
+          }
+          if(ok && lo >= 0xDC00 && lo <= 0xDFFF) return String.fromCharCode(code, lo);
+          i = save; line = sl; col = sc;
+        }
+        return String.fromCharCode(code);
+      }
+      return String.fromCharCode(code);
+    }
+    function parseNumber(){
+      var start = i;
+      if(src[i] === '+'){ if(!json5) err('数字不允许前导 +'); adv(); }
+      if(src[i] === 'I'){ if(json5 && startsWith('Infinity')) return Infinity; err('非法数字'); }
+      if(src[i] === 'N'){ if(json5 && startsWith('NaN')) return NaN; err('非法数字'); }
+      if(src[i] === '0' && (src[i+1] === 'x' || src[i+1] === 'X')){
+        if(!json5) err('不允许十六进制');
+        adv(); adv();
+        var hx = '';
+        while(i < n && hexVal(src[i]) >= 0) hx += adv();
+        if(!hx) err('十六进制数字不完整');
+        return parseInt(hx, 16);
+      }
+      if(src[i] === '-') adv();
+      if(i >= n) err('数字不完整');
+      var ip = '';
+      if(src[i] === '0'){ ip += adv(); if(isDigit(src[i])) err('数字不允许前导零'); }
+      else if(src[i] >= '1' && src[i] <= '9'){ while(isDigit(src[i])) ip += adv(); }
+      else if(json5 && src[i] === '.'){ /* 前导小数点 */ }
+      else err('非法数字');
+      var fp = '';
+      if(src[i] === '.'){
+        adv();
+        if(json5 && !isDigit(src[i])){ /* 尾随小数点，如 5. */ }
+        else { while(isDigit(src[i])) fp += adv(); if(!fp) err('小数部分不完整'); }
+      }
+      var ep = '';
+      if(src[i] === 'e' || src[i] === 'E'){
+        adv();
+        if(src[i] === '+' || src[i] === '-') ep += adv();
+        if(!isDigit(src[i])) err('指数不完整');
+        while(isDigit(src[i])) ep += adv();
+      }
+      var text = src.slice(start, i);
+      var val = Number(text);
+      if(isNaN(val)) err('非法数字');
+      return val;
+    }
+    function parseValue(){
+      skipWs();
+      if(i >= n) err('意外的输入结束');
+      var c = src[i];
+      if(c === '{') return parseObject();
+      if(c === '[') return parseArray();
+      if(c === '"' || (json5 && c === "'")) return parseString(c === "'");
+      if(c === '-' || c === '+' || isDigit(c) || (json5 && (c === '.' || c === 'I' || c === 'N'))) return parseNumber();
+      if(startsWith('true')) return true;
+      if(startsWith('false')) return false;
+      if(startsWith('null')) return null;
+      err('无法识别的字符 ' + JSON.stringify(c));
+    }
+    function parseObject(){
+      adv(); // {
+      skipWs();
+      if(src[i] === '}'){ adv(); return {}; }
+      var obj = {};
+      while(true){
+        skipWs();
+        if(i >= n) err('对象未闭合');
+        var c = src[i], key;
+        if(c === '"' || (json5 && c === "'")){ key = parseString(c === "'"); }
+        else if(json5){
+          var ks = '';
+          while(i < n && /[A-Za-z_$0-9]/.test(src[i])) ks += adv();
+          if(!ks) err('对象的键非法');
+          key = ks;
+        }
+        else err('对象的键必须是双引号字符串');
+        skipWs();
+        if(src[i] !== ':') err("对象的键后应为 ':'");
+        adv();
+        obj[key] = parseValue();
+        skipWs();
+        if(i >= n) err('对象未闭合');
+        c = src[i];
+        if(c === ','){
+          adv(); skipWs();
+          if(json5 && src[i] === '}'){ adv(); return obj; }
+          if(i >= n) err('对象未闭合');
+          continue;
+        }
+        if(c === '}'){ adv(); return obj; }
+        err("对象中应为 ',' 或 '}'");
+      }
+    }
+    function parseArray(){
+      adv(); // [
+      skipWs();
+      if(src[i] === ']'){ adv(); return []; }
+      var arr = [];
+      while(true){
+        skipWs();
+        arr.push(parseValue());
+        skipWs();
+        if(i >= n) err('数组未闭合');
+        var c = src[i];
+        if(c === ','){
+          adv(); skipWs();
+          if(json5 && src[i] === ']'){ adv(); return arr; }
+          if(i >= n) err('数组未闭合');
+          continue;
+        }
+        if(c === ']'){ adv(); return arr; }
+        err("数组中应为 ',' 或 ']'");
+      }
+    }
+    return {
+      parse: function(){
+        var v = parseValue();
+        skipWs();
+        if(i < n) err('末尾存在多余内容');
+        return v;
+      }
+    };
+  }
+
+  /* ---------- 序列化器 ---------- */
+  function serialize(v, mode){
+    var indentUnit = cfg.indent === 'tab' ? '\t' : cfg.indent === '1' ? ' ' : cfg.indent === '4' ? '    ' : '  ';
+    var eol = cfg.eol === 'crlf' ? '\r\n' : '\n';
+    var ascii = cfg.unicode === 'ascii';
+    var trailing = cfg.trailingComma === 'multi';
+    var sort = cfg.sortKeys === 'alpha';
+    var min = mode === 'min';
+
+    function pad4(h){ while(h.length < 4) h = '0' + h; return h; }
+    function escStr(s){
+      var out = '';
+      for(var i = 0; i < s.length; i++){
+        var c = s.charAt(i), cc = s.charCodeAt(i);
+        switch(c){
+          case '"': out += '\\"'; break;
+          case '\\': out += '\\\\'; break;
+          case '\b': out += '\\b'; break;
+          case '\f': out += '\\f'; break;
+          case '\n': out += '\\n'; break;
+          case '\r': out += '\\r'; break;
+          case '\t': out += '\\t'; break;
+          default:
+            if(cc < 0x20) out += '\\u' + pad4(cc.toString(16));
+            else if(ascii && cc > 0x7e) out += '\\u' + pad4(cc.toString(16));
+            else out += c;
+        }
+      }
+      return out;
+    }
+    function num(x){
+      if(Number.isFinite(x)) return String(x);
+      if(Number.isNaN(x)) return JSON5 ? 'NaN' : 'null';
+      return JSON5 ? (x < 0 ? '-Infinity' : 'Infinity') : 'null';
+    }
+    function sortObj(o){
+      if(!sort) return o;
+      var keys = Object.keys(o);
+      keys.sort(function(a, b){ var x = a.toLowerCase(), y = b.toLowerCase(); return x < y ? -1 : (x > y ? 1 : 0); });
+      var r = {};
+      for(var i = 0; i < keys.length; i++) r[keys[i]] = o[keys[i]];
+      return r;
+    }
+    function str(x, depth){
+      if(x === null) return 'null';
+      var t = typeof x;
+      if(t === 'string') return '"' + escStr(x) + '"';
+      if(t === 'number') return num(x);
+      if(t === 'boolean') return x ? 'true' : 'false';
+      if(Array.isArray(x)){
+        if(x.length === 0) return '[]';
+        var items = [];
+        for(var i = 0; i < x.length; i++) items.push(str(x[i], depth + 1));
+        if(min) return '[' + items.join(',') + ']';
+        var ind = indentUnit.repeat(depth + 1), close = indentUnit.repeat(depth);
+        return '[' + eol + ind + items.join(',' + eol + ind) + (trailing ? ',' : '') + eol + close + ']';
+      }
+      if(t === 'object'){
+        var o = sortObj(x);
+        var keys = Object.keys(o);
+        if(keys.length === 0) return '{}';
+        var parts = [];
+        for(var i2 = 0; i2 < keys.length; i2++){
+          parts.push('"' + escStr(keys[i2]) + '":' + (min ? '' : ' ') + str(o[keys[i2]], depth + 1));
+        }
+        if(min) return '{' + parts.join(',') + '}';
+        var ind2 = indentUnit.repeat(depth + 1), close2 = indentUnit.repeat(depth);
+        return '{' + eol + ind2 + parts.join(',' + eol + ind2) + (trailing ? ',' : '') + eol + close2 + '}';
+      }
+      return 'null';
+    }
+    return str(v, 0);
+  }
+
+  /* ---------- 统计 ---------- */
+  function computeStats(v){
+    var nodes = 0, keys = 0, depth = 0;
+    (function walk(x, d){
+      nodes++;
+      if(d > depth) depth = d;
+      if(x === null) return;
+      var t = typeof x;
+      if(t === 'object'){
+        if(Array.isArray(x)){ for(var i = 0; i < x.length; i++) walk(x[i], d + 1); }
+        else {
+          var ks = Object.keys(x);
+          keys += ks.length;
+          for(var j = 0; j < ks.length; j++) walk(x[ks[j]], d + 1);
+        }
+      }
+    })(v, 0);
+    return { nodes: nodes, keys: keys, depth: depth };
+  }
+
+  /* ---------- 多段日志模式：逐行解析 ---------- */
+  function logSplit(){
+    var lines = SRC.split(/\r?\n/);
+    var out = [], count = 0;
+    for(var i = 0; i < lines.length; i++){
+      var raw = lines[i];
+      if(!raw.trim()) continue;
+      try{
+        var v = new Parser(raw, JSON5).parse();
+        out.push(serialize(v, 'pretty'));
+        count++;
+      }catch(e){
+        return { ok: false, error: { line: i + 1, col: (e.col || 1), message: e.message, raw: raw }, count: count };
+      }
+    }
+    if(count === 0) return { ok: false, error: { line: 1, col: 1, message: '没有找到任何 JSON 内容' }, count: 0 };
+    return { ok: true, text: out.join('\n\n'), count: count };
+  }
+
+  /* ---------- 任务分发 ---------- */
+  if(cfg.logMode && task.op !== 'tree'){
+    var ls = logSplit();
+    if(!ls.ok) return ls;
+    if(task.op === 'validate') return { ok: true, logOk: true, count: ls.count, stats: null };
+    return { ok: true, text: ls.text, count: ls.count, stats: null };
+  }
+  var value = new Parser(SRC, JSON5).parse();
+  var stats = computeStats(value);
+  if(task.op === 'validate') return { ok: true, stats: stats };
+  if(task.op === 'tree') return { ok: true, value: value, text: serialize(value, 'pretty'), stats: stats };
+  return { ok: true, text: serialize(value, task.op === 'minify' ? 'min' : 'pretty'), stats: stats };
+}
+//__ENGINE_END__
+</script>
+
+<script>
+/* ===== 应用逻辑 ===== */
+//__UI_START__
+'use strict';
+/* ===== 状态与配置 ===== */
+var DEFAULT_CFG = { parser:'strict', indent:'2', eol:'lf', trailingComma:'none', sortKeys:'none', unicode:'unicode', logMode:false };
+function loadCfg(){
+  try{ var raw = localStorage.getItem('jsonTool.cfg'); if(raw) return Object.assign({}, DEFAULT_CFG, JSON.parse(raw)); }catch(e){}
+  return Object.assign({}, DEFAULT_CFG);
+}
+var state = {
+  view: 'beautify',
+  cfg: loadCfg(),
+  input: '', output: '', copyText: '', stats: null, error: null, count: null,
+  busy: false, renderedLines: 0,
+  treeValue: null, treeText: '', treeOpen: {}, treeLimits: {}
+};
+function saveCfg(){ try{ localStorage.setItem('jsonTool.cfg', JSON.stringify(state.cfg)); }catch(e){} }
+
+var $ = function(id){ return document.getElementById(id); };
+var inputEl = $('input'), outBody = $('outBody'), busyEl = $('busy');
+
+var SAMPLE = '{\n  "project": "json-tool",\n  "version": "1.0.0",\n  "author": "开发者",\n  "features": ["美化", "压缩", "校验", "树形"],\n  "config": {\n    "indent": 2,\n    "trailingComma": false,\n    "unicode": "原文",\n    "nullable": null,\n    "ratio": 0.618,\n    "big": 1.5e10,\n    "enabled": true\n  },\n  "tags": [\n    { "name": "离线", "size": 1024 },\n    { "name": "纯本地", "size": 2048 }\n  ],\n  "escaped": "\\u4e2d\\u6587\\u5b57\\u7b26"\n}';
+
+/* ===== Web Worker（不可用时同步回退） ===== */
+var worker = null, reqId = 0, pending = {};
+function ensureWorker(){
+  if(worker) return true;
+  try{
+    var fnSrc = engineRun.toString();
+    var mainSrc = 'self.onmessage=function(e){var t=e.data;try{var r=engineRun(t);self.postMessage({id:t.id,ok:true,result:r});}catch(err){self.postMessage({id:t.id,ok:false,error:{message:err.message||String(err),line:err.line,col:err.col}});}};';
+    var blob = new Blob([fnSrc + '\n' + mainSrc], { type: 'application/javascript' });
+    worker = new Worker(URL.createObjectURL(blob));
+    worker.onmessage = function(e){
+      var d = e.data, cb = pending[d.id];
+      if(!cb) return;
+      delete pending[d.id];
+      if(d.ok) cb(null, d.result);
+      else cb({ message: d.error.message, line: d.error.line, col: d.error.col });
+    };
+    worker.onerror = function(){ if(worker){ worker.terminate(); worker = null; } };
+    return true;
+  }catch(e){ return false; }
+}
+function runEngine(op, input, cb){
+  var id = ++reqId;
+  var msg = { id: id, op: op, input: input, cfg: state.cfg };
+  if(ensureWorker() && worker){
+    try{
+      pending[id] = cb;
+      worker.postMessage(msg);
+      return;
+    }catch(e){ worker = null; }
+  }
+  setTimeout(function(){
+    try{ cb(null, engineRun(msg)); }
+    catch(e){ cb({ message: e.message, line: e.line, col: e.col }); }
+  }, 0);
+}
+
+/* ===== 工具函数 ===== */
+function esc(s){ return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function fmtSize(n){
+  if(n < 1024) return n + ' B';
+  if(n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+  return (n / 1048576).toFixed(2) + ' MB';
+}
+function toBase64(s){ return btoa(unescape(encodeURIComponent(s))); }
+function fromBase64(s){ return decodeURIComponent(escape(atob(s))); }
+function viewTitle(){ return { beautify:'美化结果', minify:'压缩结果', validate:'校验结果', tree:'树形视图' }[state.view]; }
+
+var toastTimer = null;
+function toast(msg){
+  var t = $('toast');
+  t.textContent = msg; t.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 1600);
+}
+
+var checkSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+var alertSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>';
+var locSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+
+/* ===== 语法高亮（先分词、后转义） ===== */
+function hl(text){
+  var re = /("(?:\\.|[^"\\])*")(\s*:)?|\b(-?Infinity|NaN)\b|\b(true|false|null)\b|(-?\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b)/g;
+  var out = '', last = 0, m;
+  while((m = re.exec(text))){
+    out += esc(text.slice(last, m.index));
+    if(m[1]){ out += '<span class="t-' + (m[2] ? 'key' : 'str') + '">' + esc(m[1]) + '</span>' + (m[2] ? '<span class="t-pun">' + esc(m[2]) + '</span>' : ''); }
+    else if(m[3]) out += '<span class="t-num">' + esc(m[3]) + '</span>';
+    else if(m[4]) out += '<span class="t-lit">' + esc(m[4]) + '</span>';
+    else if(m[5]) out += '<span class="t-num">' + esc(m[5]) + '</span>';
+    last = m.index + m[0].length;
+  }
+  out += esc(text.slice(last));
+  return out;
+}
+
+/* ===== 渲染：输出 / 校验 / 错误 / 树形 / 状态 ===== */
+function showEmpty(){
+  outBody.innerHTML = '<div class="empty-hint" id="emptyHint"><b>输入 JSON 后自动处理</b><span class="mini">或点击「示例」快速体验 · 数据全程不出浏览器</span></div>';
+}
+function renderOutput(){
+  var meta = [];
+  if(state.count != null) meta.push(state.count + ' 段日志');
+  $('outTitle').textContent = viewTitle();
+  $('outMeta').textContent = meta.join(' · ');
+  var lines = state.output.split('\n');
+  var step = 4000;
+  var show = Math.min(lines.length, state.renderedLines + step);
+  outBody.innerHTML = '<pre>' + hl(lines.slice(0, show).join('\n')) + '</pre>';
+  var bar = $('chunkBar');
+  if(show < lines.length){
+    bar.classList.add('show');
+    bar.innerHTML = '<button id="chunkMore">继续渲染剩余 ' + (lines.length - show) + ' 行（共 ' + lines.length + ' 行）</button>';
+    $('chunkMore').addEventListener('click', function(){ state.renderedLines = show; renderOutput(); });
+  } else { bar.classList.remove('show'); bar.innerHTML = ''; }
+}
+function renderValidate(res){
+  $('outTitle').textContent = '校验结果';
+  $('outMeta').textContent = '';
+  outBody.innerHTML = '';
+  var card = document.createElement('div');
+  if(res.logOk){
+    card.className = 'result-card ok';
+    card.innerHTML = '<span class="ic">' + checkSvg + '</span><div><h3>多段日志校验通过</h3><p>共 ' + res.count + ' 段 JSON，全部合法。</p></div>';
+  } else {
+    card.className = 'result-card ok';
+    card.innerHTML = '<span class="ic">' + checkSvg + '</span><div><h3>JSON 合法</h3><p>这是一份合法的 JSON 文档，可按需切换到「美化」「压缩」「树形」视图。</p></div>';
+  }
+  outBody.appendChild(card);
+}
+function renderError(){
+  var e = state.error || {};
+  var msg = e.message || '解析失败';
+  var lines = state.input.split('\n');
+  var lineText = (e.line && lines[e.line - 1] != null) ? lines[e.line - 1].slice(0, 300) : '';
+  $('outTitle').textContent = '处理出错';
+  $('outMeta').textContent = '';
+  outBody.innerHTML = '';
+  var card = document.createElement('div');
+  card.className = 'result-card err';
+  card.innerHTML = '<span class="ic">' + alertSvg + '</span><div><h3>解析失败</h3><p>第 ' + (e.line || '?') + ' 行，第 ' + (e.col || '?') + ' 列：' + esc(msg) + '</p>' +
+    (lineText ? '<pre>' + esc(lineText) + '</pre>' : '') +
+    (e.line ? '<button class="link-btn" id="jumpBtn">' + locSvg + '定位到输入</button>' : '') +
+    '</div>';
+  outBody.appendChild(card);
+  if(e.line){
+    $('jumpBtn').addEventListener('click', function(){ jumpTo(e.line, e.col); });
+  }
+  var eb = $('errorBar');
+  eb.classList.add('show');
+  eb.textContent = '第 ' + (e.line || '?') + ' 行，第 ' + (e.col || '?') + ' 列：' + msg;
+}
+function jumpTo(line, col){
+  var src = inputEl.value, ls = src.split('\n'), off = 0;
+  for(var i = 0; i < line - 1 && i < ls.length; i++) off += ls[i].length + 1;
+  off += (col || 1) - 1;
+  inputEl.focus();
+  try{ inputEl.setSelectionRange(off, Math.min(off + 1, src.length)); }catch(e){}
+}
+function renderStats(stats, ms){
+  var s = stats || {};
+  $('stNodes').textContent = (s.nodes != null) ? s.nodes : '-';
+  $('stKeys').textContent = (s.keys != null) ? s.keys : '-';
+  $('stDepth').textContent = (s.depth != null) ? s.depth : '-';
+  $('stIn').textContent = state.input ? fmtSize(state.input.length) : '-';
+  if(state.output){
+    $('stOut').textContent = fmtSize(state.output.length);
+    var ratio = (state.output.length / Math.max(1, state.input.length) - 1) * 100;
+    $('stRatio').textContent = (ratio >= 0 ? '+' : '−') + Math.abs(ratio).toFixed(1) + '%';
+  } else { $('stOut').textContent = '-'; $('stRatio').textContent = '-'; }
+  $('stTime').textContent = ms ? ms + ' ms' : '-';
+}
+function resetOutput(){
+  state.output = ''; state.copyText = ''; state.stats = null; state.error = null;
+  state.count = null; state.treeValue = null; state.treeText = '';
+  $('outTitle').textContent = viewTitle();
+  $('outMeta').textContent = '';
+  showEmpty();
+  $('chunkBar').classList.remove('show'); $('chunkBar').innerHTML = '';
+  $('errorBar').classList.remove('show');
+  renderStats(null);
+}
+
+/* ===== 树形视图 ===== */
+function valueHtml(v){
+  if(v === null) return '<span class="t-lit">null</span>';
+  var t = typeof v;
+  if(t === 'string') return '<span class="t-str">' + esc(JSON.stringify(v)) + '</span>';
+  if(t === 'number') return '<span class="t-num">' + esc(String(v)) + '</span>';
+  if(t === 'boolean') return '<span class="t-lit">' + v + '</span>';
+  return '<span class="t-pun">undefined</span>';
+}
+function treeNodeEl(v, path, depth){
+  var wrap = document.createElement('div');
+  var isObj = v !== null && typeof v === 'object';
+  if(isObj){
+    var keys = Object.keys(v), isArr = Array.isArray(v), n = keys.length;
+    var pathKey = JSON.stringify(path);
+    var open = !!state.treeOpen[pathKey];
+    var row = document.createElement('div');
+    row.className = 'tv-row';
+    row.style.paddingLeft = (depth * 16) + 'px';
+    var tog = document.createElement('span');
+    tog.className = 'tv-toggle' + (n ? '' : ' leaf');
+    tog.textContent = n ? (open ? '▾' : '▸') : '';
+    if(n){
+      (function(pk){ tog.addEventListener('click', function(){ state.treeOpen[pk] = !state.treeOpen[pk]; renderTree(state.treeValue); }); })(pathKey);
+    }
+    row.appendChild(tog);
+    var label = document.createElement('span');
+    var keyHtml = path.length ? '<span class="tv-k">' + esc(JSON.stringify(path[path.length - 1])) + '</span><span class="tv-p">: </span>' : '';
+    label.innerHTML = keyHtml + '<span class="tv-p">' + (isArr ? '[' : '{') + '</span><span class="tv-sum">' + n + (isArr ? ' 项' : ' 键') + '</span><span class="tv-p">' + (isArr ? ']' : '}') + '</span>';
+    row.appendChild(label);
+    wrap.appendChild(row);
+    if(open){
+      var ch = document.createElement('div');
+      ch.className = 'tv-ch';
+      var limit = state.treeLimits[pathKey] || 300;
+      var shown = keys.slice(0, limit);
+      for(var i = 0; i < shown.length; i++){
+        ch.appendChild(treeNodeEl(v[keys[i]], path.concat(isArr ? i : keys[i]), depth + 1));
+      }
+      if(keys.length > limit){
+        (function(pk, total){
+          var more = document.createElement('button');
+          more.className = 'tv-more';
+          more.textContent = '展开剩余 ' + (total - limit) + ' 项';
+          more.addEventListener('click', function(){ state.treeLimits[pk] = total; renderTree(state.treeValue); });
+          ch.appendChild(more);
+        })(pathKey, keys.length);
+      }
+      wrap.appendChild(ch);
+    }
+  } else {
+    var row2 = document.createElement('div');
+    row2.className = 'tv-row';
+    row2.style.paddingLeft = (depth * 16) + 'px';
+    var tog2 = document.createElement('span');
+    tog2.className = 'tv-toggle leaf';
+    row2.appendChild(tog2);
+    var span = document.createElement('span');
+    var keyHtml2 = path.length ? '<span class="tv-k">' + esc(JSON.stringify(path[path.length - 1])) + '</span><span class="tv-p">: </span>' : '';
+    span.innerHTML = keyHtml2 + valueHtml(v);
+    row2.appendChild(span);
+    wrap.appendChild(row2);
+  }
+  return wrap;
+}
+function renderTree(value){
+  $('outTitle').textContent = '树形视图';
+  $('outMeta').textContent = '';
+  outBody.innerHTML = '';
+  var wrap = document.createElement('div');
+  wrap.className = 'tv';
+  wrap.appendChild(treeNodeEl(value, [], 0));
+  outBody.appendChild(wrap);
+}
+
+/* ===== 主流程 ===== */
+function run(){
+  if(state.busy) return;
+  state.input = inputEl.value;
+  if(!state.input.trim()){ resetOutput(); return; }
+  if(state.cfg.logMode && state.view === 'tree'){
+    state.error = { message: '树形视图不支持「多段日志模式」，请先关闭该选项后再切换', line: null, col: null };
+    state.stats = null; state.output = '';
+    busyEl.classList.remove('show');
+    renderError(); renderStats(null);
+    return;
+  }
+  state.busy = true;
+  busyEl.classList.add('show');
+  $('errorBar').classList.remove('show');
+  var op = state.view === 'minify' ? 'minify' : state.view === 'validate' ? 'validate' : state.view === 'tree' ? 'tree' : 'beautify';
+  var t0 = performance.now();
+  runEngine(op, state.input, function(err, res){
+    state.busy = false;
+    busyEl.classList.remove('show');
+    var ms = (performance.now() - t0).toFixed(1);
+    if(err || (res && res.ok === false)){
+      var e = err || res.error;
+      state.error = e; state.stats = null; state.output = ''; state.copyText = ''; state.treeValue = null;
+      renderError(); renderStats(null, ms);
+      return;
+    }
+    state.error = null;
+    if(op === 'validate'){
+      state.stats = res.stats; state.output = ''; state.copyText = ''; state.treeValue = null;
+      renderValidate(res); renderStats(state.stats, ms);
+    } else if(op === 'tree'){
+      state.stats = res.stats; state.treeValue = res.value; state.treeText = res.text;
+      state.copyText = res.text; state.output = '';
+      state.treeOpen = { '[]': true }; state.treeLimits = {};
+      renderTree(res.value); renderStats(state.stats, ms);
+    } else {
+      state.output = res.text; state.stats = res.stats; state.copyText = res.text;
+      state.count = (res.count != null) ? res.count : null;
+      state.renderedLines = 0;
+      renderOutput(); renderStats(state.stats, ms);
+    }
+  });
+}
+
+/* ===== 事件绑定 ===== */
+$('tabs').addEventListener('click', function(e){
+  var b = e.target.closest('.tab');
+  if(!b) return;
+  state.view = b.dataset.view;
+  var tabs = document.querySelectorAll('.tab');
+  for(var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('active', tabs[i] === b);
+  run();
+});
+function bindCfg(id, key, type){
+  var el = $(id);
+  el.addEventListener('change', function(){
+    state.cfg[key] = type === 'chk' ? el.checked : el.value;
+    saveCfg(); run();
+  });
+}
+bindCfg('cfgParser', 'parser');
+bindCfg('cfgIndent', 'indent');
+bindCfg('cfgEol', 'eol');
+bindCfg('cfgTrailing', 'trailingComma');
+bindCfg('cfgSort', 'sortKeys');
+bindCfg('cfgUnicode', 'unicode');
+bindCfg('cfgLog', 'logMode', 'chk');
+function syncCfgUI(){
+  $('cfgParser').value = state.cfg.parser;
+  $('cfgIndent').value = state.cfg.indent;
+  $('cfgEol').value = state.cfg.eol;
+  $('cfgTrailing').value = state.cfg.trailingComma;
+  $('cfgSort').value = state.cfg.sortKeys;
+  $('cfgUnicode').value = state.cfg.unicode;
+  $('cfgLog').checked = !!state.cfg.logMode;
+}
+
+var debounceTimer = null;
+inputEl.addEventListener('input', function(){
+  if(debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(run, 350);
+});
+inputEl.addEventListener('keydown', function(e){
+  if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+    e.preventDefault();
+    if(debounceTimer) clearTimeout(debounceTimer);
+    run();
+  }
+});
+
+$('btnSample').addEventListener('click', function(){
+  inputEl.value = SAMPLE;
+  state.input = SAMPLE;
+  $('fileInfo').textContent = '';
+  run();
+});
+$('btnClear').addEventListener('click', function(){
+  inputEl.value = '';
+  state.input = '';
+  $('fileInfo').textContent = '';
+  resetOutput();
+});
+$('btnOpen').addEventListener('click', function(){ $('fileInput').click(); });
+$('fileInput').addEventListener('change', function(e){
+  var f = e.target.files && e.target.files[0];
+  if(f) readFile(f);
+  this.value = '';
+});
+function readFile(f){
+  var r = new FileReader();
+  r.onload = function(){
+    inputEl.value = r.result;
+    state.input = r.result;
+    $('fileInfo').textContent = f.name + ' · ' + fmtSize(f.size);
+    run();
+  };
+  r.onerror = function(){ toast('文件读取失败'); };
+  r.readAsText(f);
+}
+['dragover', 'dragenter'].forEach(function(ev){
+  document.addEventListener(ev, function(e){ e.preventDefault(); document.body.classList.add('dragging'); });
+});
+['dragleave', 'drop'].forEach(function(ev){
+  document.addEventListener(ev, function(e){ e.preventDefault(); document.body.classList.remove('dragging'); });
+});
+document.addEventListener('drop', function(e){
+  e.preventDefault();
+  var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if(!f) return;
+  if(/\.(json|txt)$/i.test(f.name)) readFile(f);
+  else toast('仅支持 .json / .txt 文件');
+});
+
+function copyText(t, ok, fail){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(ok, function(){ legacyCopy(t, ok, fail); });
+  } else legacyCopy(t, ok, fail);
+}
+function legacyCopy(t, ok, fail){
+  var ta = document.createElement('textarea');
+  ta.value = t;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try{ document.execCommand('copy'); ok(); }catch(e){ fail(); }
+  document.body.removeChild(ta);
+}
+$('btnCopy').addEventListener('click', function(){
+  var text = state.copyText || state.output;
+  if(!text){ toast('暂无输出可复制'); return; }
+  copyText(text, function(){ toast('已复制到剪贴板'); }, function(){ toast('复制失败'); });
+});
+$('btnDownload').addEventListener('click', function(){
+  var text = state.copyText || state.output;
+  if(!text){ toast('暂无输出可下载'); return; }
+  var blob = new Blob([text], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'output.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  toast('已下载 output.json');
+});
+$('btnShare').addEventListener('click', function(){
+  var payload = { v: 1, cfg: state.cfg };
+  if(state.input && state.input.length <= 8192) payload.d = state.input;
+  var url = location.href.split('#')[0] + '#j=' + toBase64(JSON.stringify(payload));
+  copyText(url, function(){ toast('分享链接已复制（含配置与当前输入）'); }, function(){ toast('复制失败'); });
+});
+
+/* ===== URL 分享与初始化 ===== */
+function applyHash(){
+  var h = location.hash;
+  if(!h || h.indexOf('#j=') !== 0) return;
+  try{
+    var p = JSON.parse(fromBase64(h.slice(3)));
+    if(p.cfg) state.cfg = Object.assign({}, DEFAULT_CFG, p.cfg);
+    if(typeof p.d === 'string'){ inputEl.value = p.d; state.input = p.d; }
+  }catch(e){}
+}
+syncCfgUI();
+applyHash();
+if(state.input){ run(); } else { resetOutput(); }
+//__UI_END__
+</script>
+</body>
+</html>

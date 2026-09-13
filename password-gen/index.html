@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>密码工坊 PassForge｜本地随机密码生成器</title>
+<meta name="description" content="纯本地随机密码生成器：长度可调、四类字符集自由组合、一键排除易错字符，支持助记密码模式（随机短语 / 自定义短语派生），实时显示熵值与破解时间，剪贴板自动清除，无任何上传。">
+<meta name="keywords" content="密码生成器,随机密码,强密码,密码生成,易错字符,熵值,助记密码,密码短语">
+<link rel="canonical" href="https://tools.dutycode.com/password-gen/">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="apple-touch-icon" href="assets/favicon.svg">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="密码工坊 PassForge">
+<meta property="og:title" content="密码工坊 PassForge｜本地随机密码生成器">
+<meta property="og:description" content="纯本地随机密码生成器：长度可调、字符集自由组合、一键排除易错字符，支持助记密码模式。">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#0e7c72">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="密码工坊 PassForge｜本地随机密码生成器">
+<meta name="twitter:description" content="纯本地随机密码生成器：长度可调、字符集自由组合、一键排除易错字符，支持助记密码模式，实时熵值与破解时间，零上传。">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"密码工坊 PassForge","alternateName":"PassForge 密码生成器","description":"纯本地随机密码生成器，支持长度调节、四类字符集自由组合、一键排除易错字符、助记密码模式（随机句式/自定义短语 SHA-256 派生）、实时熵值与破解时间估算、剪贴板自动清除。所有计算在浏览器内完成，零数据上传。","url":"https://tools.dutycode.com/password-gen/","applicationCategory":"SecurityApplication","operatingSystem":"Any (Web browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"CNY"},"inLanguage":"zh-CN","isAccessibleForFree":true}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"密码生成器安全吗？密码会被上传吗？","acceptedAnswer":{"@type":"Answer","text":"安全。所有随机数由浏览器 Web Crypto API 加密安全随机源生成，页面不发出任何网络请求，数据零上传，断网也能用。"}},{"@type":"Question","name":"密码的熵值是什么意思？","acceptedAnswer":{"@type":"Answer","text":"熵值衡量密码随机性，每增加 1 位熵破解难度翻倍。生成器实时显示熵值与估算破解时间，16 位全字符集密码熵值约 105 位，远超暴力破解能力。"}},{"@type":"Question","name":"什么是助记密码模式？","acceptedAnswer":{"@type":"Answer","text":"从随机词库选 4-6 个单词组成短语，或用自定义短语经 SHA-256 派生，好记且熵值高，适合需要定期人工输入的场景。"}},{"@type":"Question","name":"复制后密码会被别人看到吗？","acceptedAnswer":{"@type":"Answer","text":"剪贴板会在设定时间后自动清除，降低共用电脑场景下的泄露风险。建议配合密码管理器使用。"}}]}</script>
+<style>
+:root{
+  --bg:#eef3f7; --card:#ffffff; --ink:#16283a; --sub:#5a6b7d; --line:#dbe5ee;
+  --accent:#0e7c72; --accent-deep:#0a5f58; --accent-soft:#e3f2ef;
+  --box-bg:#132438; --box-ink:#8be9c9; --box-sub:#8aa3bd;
+  --weak:#d9534f; --mid:#e0a02d; --strong:#2f9e6b; --super:#1f7a8c;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
+  background:var(--bg); color:var(--ink); line-height:1.6;
+  padding:0 16px 48px;
+  position:relative; overflow-x:hidden;
+}
+/* 背景装饰：钥匙 / 锁 / 盾牌，低透明度不干扰内容 */
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='none' stroke='%230e7c72' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10' cy='10' r='5'/%3E%3Cpath d='M13.5 13.5L21 21'/%3E%3Cpath d='M17 14l3 3'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%230e7c72' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='11' width='14' height='10' rx='2'/%3E%3Cpath d='M8 11V7a4 4 0 0 1 8 0v4'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 24 24' fill='none' stroke='%230e7c72' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2l8 3v6c0 5.2-3.4 9.6-8 11-4.6-1.4-8-5.8-8-11V5l8-3z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position: 8% 18%, 88% 12%, 78% 72%;
+  opacity:.07;
+}
+.wrap{max-width:1080px;margin:0 auto;position:relative;z-index:1}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace}
+
+/* ===== 双栏主布局 ===== */
+.main-grid{display:grid;grid-template-columns:1.05fr 0.95fr;gap:16px;align-items:start}
+.col-left,.col-right{display:flex;flex-direction:column;gap:16px;min-width:0}
+.full-width{grid-column:1/-1}
+
+/* ===== header ===== */
+header{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0 14px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.logo-mark{width:34px;height:34px;flex:none}
+.logo-name{font-size:18px;font-weight:800;letter-spacing:.5px}
+.logo-name em{font-style:normal;color:var(--accent);font-weight:700;margin-left:4px}
+.trust-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent-deep);background:var(--accent-soft);border:1px solid #bfe2da;border-radius:999px;padding:5px 12px;font-weight:600}
+.trust-badge svg{width:13px;height:13px;flex:none}
+
+/* ===== hero ===== */
+.hero{padding:10px 0 18px}
+.hero h1{font-size:clamp(20px,3.4vw,26px);font-weight:800;line-height:1.35}
+.hero p{color:var(--sub);font-size:14px;margin-top:6px}
+
+/* ===== result box ===== */
+.result{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 18px 16px;margin-bottom:16px}
+.pw-box{
+  background:var(--box-bg);border-radius:10px;padding:18px 16px;position:relative;
+  display:flex;align-items:center;gap:12px;min-height:86px;
+}
+.pw-text{flex:1;font-size:clamp(18px,3.2vw,28px);font-weight:700;color:var(--box-ink);letter-spacing:1.5px;word-break:break-all;line-height:1.35}
+.pw-text.hidden{letter-spacing:6px;color:#5d7b94}
+.pw-text.placeholder{color:#5d7b94;font-size:15px;letter-spacing:0;font-weight:500}
+.pw-actions{display:flex;flex-direction:column;gap:8px;flex:none}
+.icon-btn{
+  width:44px;height:44px;border-radius:9px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);
+  color:#cfe0ef;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;
+}
+.icon-btn:hover{background:rgba(255,255,255,.14)}
+.icon-btn svg{width:19px;height:19px}
+.batch-wrap{margin-top:14px}
+.batch-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;margin-top:8px;background:#fbfdfe}
+.batch-item .pw-text{font-size:15px;letter-spacing:1px;word-break:break-all}
+.batch-item .mini-copy{margin-left:auto;flex:none;border:1px solid var(--line);background:#fff;color:var(--accent-deep);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer}
+.batch-item .mini-copy:hover{background:var(--accent-soft)}
+
+/* meta row: entropy */
+.meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+.entropy{display:flex;align-items:baseline;gap:6px}
+.entropy b{font-size:26px;font-weight:800;color:var(--accent-deep)}
+.entropy span{font-size:12px;color:var(--sub)}
+.badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;color:#fff}
+.badge.weak{background:var(--weak)} .badge.mid{background:var(--mid)} .badge.strong{background:var(--strong)} .badge.super{background:var(--super)}
+.crack{font-size:12px;color:var(--sub)}
+.crack b{color:var(--ink);font-weight:700}
+.mode-note{font-size:12px;color:var(--accent-deep);background:var(--accent-soft);border-radius:6px;padding:3px 10px;font-weight:600}
+.mnemonic-display{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 12px;background:#f4f8f7;border:1px dashed #bfe2da;border-radius:8px;flex-wrap:wrap}
+.mnemonic-tag{font-size:11px;font-weight:700;color:#0a5f58;background:#e3f2ef;padding:2px 8px;border-radius:4px;flex:none;white-space:nowrap}
+.mnemonic-text{flex:1;font-size:14px;color:#16283a;word-break:break-all;min-width:120px;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.mnemonic-display .mini-copy{flex:none;border:1px solid #bfe2da;background:#fff;color:var(--accent-deep);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer}
+.mnemonic-display .mini-copy:hover{background:var(--accent-soft)}
+
+.gen-row{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+.btn-gen{
+  flex:1 1 160px;background:var(--accent);color:#fff;border:none;border-radius:9px;padding:12px 20px;font-size:15px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .15s;
+}
+.btn-gen:hover{background:var(--accent-deep)}
+.btn-gen svg{width:17px;height:17px}
+.batch-select{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub)}
+.batch-select select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;color:var(--ink);background:#fff}
+
+/* ===== controls ===== */
+.ctl{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.ctl-title{font-size:13px;font-weight:700;color:var(--sub);letter-spacing:1px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ctl-title::before{content:"";width:4px;height:14px;border-radius:2px;background:var(--accent)}
+
+/* mode switch */
+.mode-switch{display:inline-flex;background:#eef3f7;border-radius:10px;padding:3px;gap:3px}
+.mode-btn{border:none;background:transparent;color:#5a6b7d;font-size:14px;font-weight:700;padding:9px 22px;border-radius:8px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.mode-btn.on{background:#fff;color:#0a5f58;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+
+/* length */
+.len-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.range{flex:1 1 220px;min-width:180px;accent-color:var(--accent);height:6px;cursor:pointer}
+.len-num{font-size:22px;font-weight:800;color:var(--accent-deep);min-width:44px;text-align:right}
+.presets{display:flex;gap:8px;flex-wrap:wrap}
+.preset{border:1px solid var(--line);background:#fff;color:var(--sub);border-radius:999px;padding:5px 14px;font-size:13px;cursor:pointer;font-weight:600;transition:all .15s}
+.preset:hover{border-color:var(--accent);color:var(--accent-deep)}
+.preset.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* char classes */
+.cls-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:4px}
+.cls{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:11px 13px;cursor:pointer;user-select:none;transition:border-color .15s,background .15s}
+.cls:hover{border-color:var(--accent)}
+.cls.off{opacity:.55}
+.cls input{width:18px;height:18px;accent-color:var(--accent);flex:none}
+.cls .c-name{font-weight:700;font-size:14px}
+.cls .c-pool{font-size:11px;color:var(--sub);margin-left:auto;font-family:ui-monospace,Menlo,Consolas,monospace}
+.cls .c-dot{width:8px;height:8px;border-radius:50%;flex:none}
+
+/* exclude */
+.ex-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.switch{position:relative;width:44px;height:24px;flex:none}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#c6d2dd;border-radius:999px;transition:background .15s;cursor:pointer}
+.slider::before{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:3px;top:3px;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch input:checked+.slider{background:var(--accent)}
+.switch input:checked+.slider::before{transform:translateX(20px)}
+.ex-label{font-weight:700;font-size:14px}
+.ex-hint{font-size:12px;color:var(--sub);width:100%;margin-top:2px}
+.ex-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:var(--accent-soft);color:var(--accent-deep);border:1px solid #bfe2da;border-radius:6px;padding:2px 8px}
+.ex-input{margin-top:10px;width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:14px;font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--ink);background:#fbfdfe}
+.ex-input:focus{outline:none;border-color:var(--accent)}
+
+/* mnemonic */
+.mnemonic-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:14px}
+.mnemonic-label{font-size:13px;color:var(--sub);font-weight:600;min-width:56px}
+.phrase-input{flex:1 1 240px;min-width:200px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:14px;color:var(--ink);background:#fbfdfe}
+.phrase-input:focus{outline:none;border-color:var(--accent)}
+.sep-select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;color:var(--ink);background:#fff}
+.mnemonic-hint{font-size:12px;color:var(--sub);margin-top:12px;line-height:1.8}
+.mnemonic-hint b{color:var(--accent-deep)}
+.mnemonic-hint .warn{color:#d9534f;font-weight:700}
+.wordlist-info{font-size:12px;color:var(--sub)}
+.wordlist-info b{color:var(--accent-deep);font-family:ui-monospace,Menlo,Consolas,monospace}
+
+/* advanced grid */
+.adv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 18px}
+.adv-item{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.adv-label{font-size:13px;color:var(--sub);font-weight:600}
+.adv-item select{border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--ink);background:#fff}
+details.sym-edit{margin-top:12px}
+details.sym-edit:not([open]) .sym-box{display:none}
+details.sym-edit summary{cursor:pointer;font-size:13px;color:var(--accent-deep);font-weight:700;list-style:none}
+details.sym-edit summary::-webkit-details-marker{display:none}
+details.sym-edit summary::before{content:"▸ ";color:var(--accent)}
+details[open].sym-edit summary::before{content:"▾ "}
+.sym-box{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.sym-box textarea{flex:1 1 260px;min-height:64px;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;color:var(--ink);background:#fbfdfe;resize:vertical}
+.sym-box button{border:1px solid var(--line);background:#fff;color:var(--sub);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer}
+.sym-box button:hover{color:var(--accent-deep);border-color:var(--accent)}
+
+/* history */
+.hist-empty{font-size:13px;color:var(--sub);padding:6px 0}
+.hist-list{display:flex;flex-direction:column;gap:8px}
+.hist-item{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:9px;padding:9px 12px;background:#fbfdfe}
+.hist-item .pw-text{font-size:14px;letter-spacing:1px;color:var(--ink);flex:1;word-break:break-all}
+.hist-item .mini-copy{margin-left:auto;flex:none;border:1px solid var(--line);background:#fff;color:var(--accent-deep);border-radius:8px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer}
+.hist-item .mini-copy:hover{background:var(--accent-soft)}
+.hist-clear{margin-left:auto;border:none;background:none;color:var(--sub);font-size:12px;cursor:pointer;text-decoration:underline;padding:4px}
+
+/* notes */
+.notes{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;font-size:12px;color:var(--sub);line-height:1.8}
+.notes h3{font-size:13px;color:var(--ink);margin-bottom:6px}
+.notes code{font-family:ui-monospace,Menlo,Consolas,monospace;background:#eef3f7;padding:1px 6px;border-radius:4px;color:var(--accent-deep);font-size:11px}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--box-bg);color:#eaf6ff;padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:99;box-shadow:0 8px 24px rgba(19,36,56,.25);max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+footer{max-width:1080px;margin:26px auto 0;font-size:12px;color:var(--sub);text-align:center}
+footer a{color:var(--accent);text-decoration:none;margin:0 3px}
+footer a:hover{text-decoration:underline}
+
+@media (max-width:820px){
+  .main-grid{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .cls-grid{grid-template-columns:1fr}
+  .adv-grid{grid-template-columns:1fr}
+  .result,.ctl{padding:14px}
+  .pw-box{padding:14px 12px;min-height:74px}
+  .pw-actions{flex-direction:row}
+  .mode-btn{padding:8px 16px;font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <a class="logo" href="index.html" aria-label="密码工坊 首页">
+    <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0e7c72"/><circle cx="13.5" cy="15" r="5.4" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M17.4 18.9L23 24.5" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>
+    <span class="logo-name">密码工坊<em>PassForge</em></span>
+  </a>
+  <span class="trust-badge">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l8 3v6c0 5.2-3.4 9.6-8 11-4.6-1.4-8-5.8-8-11V5l8-3z" stroke="#0e7c72" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12l2.4 2.4 4.6-4.8" stroke="#0e7c72" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    纯本地生成 · 零上传
+  </span>
+</header>
+
+<section class="hero">
+  <h1>在线随机密码生成器</h1>
+  <p>所有字符都在你的浏览器内用加密安全随机数生成，页面不发出任何网络请求，断网也能用。支持随机密码与助记密码两种模式。</p>
+</section>
+
+<div class="main-grid">
+<div class="col-left">
+<!-- ===== 结果区 ===== -->
+<section class="result" aria-label="生成结果">
+  <div class="pw-box">
+    <div class="pw-text mono" id="pw-text" aria-live="polite"></div>
+    <div class="pw-actions">
+      <button type="button" class="icon-btn" id="btn-toggle" title="显示/隐藏" aria-label="显示或隐藏密码">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      <button type="button" class="icon-btn" id="btn-copy" title="复制密码" aria-label="复制密码到剪贴板">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="mnemonic-display" id="mnemonic-display" hidden>
+    <span class="mnemonic-tag">助记短语</span>
+    <span class="mnemonic-text" id="mnemonic-text"></span>
+    <button type="button" class="mini-copy" id="btn-copy-mnemonic">复制短语</button>
+  </div>
+
+  <div class="meta">
+    <div class="entropy"><b class="mono" id="entropy-val">--</b><span id="entropy-label">bits 熵值</span></div>
+    <span class="badge" id="strength-badge">--</span>
+    <span class="crack" id="crack-wrap">暴力破解约需 <b id="crack-val">--</b></span>
+    <span class="mode-note" id="mode-note" hidden></span>
+  </div>
+
+  <div class="gen-row">
+    <button type="button" class="btn-gen" id="btn-gen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>
+      <span id="btn-gen-text">重新生成</span>
+    </button>
+    <label class="batch-select" id="batch-label">生成数量
+      <select id="batch-count" aria-label="批量生成数量">
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="5">5</option><option value="10">10</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="batch-wrap" id="batch-wrap" hidden></div>
+</section>
+
+<!-- ===== 生成模式 ===== -->
+<section class="ctl" aria-label="生成模式">
+  <div class="ctl-title">生成模式</div>
+  <div class="mode-switch" role="group" aria-label="选择生成模式">
+    <button type="button" class="mode-btn on" data-mode="random">随机密码</button>
+    <button type="button" class="mode-btn" data-mode="mnemonic">助记密码</button>
+  </div>
+</section>
+</div><!-- /col-left -->
+<div class="col-right">
+<!-- ===== 长度（随机模式） ===== -->
+<section class="ctl" data-role="random" aria-label="长度设置">
+  <div class="ctl-title">长度</div>
+  <div class="len-row">
+    <input type="range" class="range" id="len-range" min="4" max="128" value="16" aria-label="密码长度">
+    <span class="len-num mono" id="len-num">16</span>
+    <div class="presets" role="group" aria-label="长度预设">
+      <button type="button" class="preset" data-len="12">12</button>
+      <button type="button" class="preset on" data-len="16">16</button>
+      <button type="button" class="preset" data-len="20">20</button>
+      <button type="button" class="preset" data-len="24">24</button>
+      <button type="button" class="preset" data-len="32">32</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 字符集（随机模式） ===== -->
+<section class="ctl" data-role="random" aria-label="字符集设置">
+  <div class="ctl-title">字符集</div>
+  <div class="cls-grid" id="cls-grid">
+    <label class="cls"><input type="checkbox" checked data-cls="upper"><span class="c-dot" style="background:#2f9e6b"></span><span class="c-name">大写字母</span><span class="c-pool" id="pool-upper">26</span></label>
+    <label class="cls"><input type="checkbox" checked data-cls="lower"><span class="c-dot" style="background:#1f7a8c"></span><span class="c-name">小写字母</span><span class="c-pool" id="pool-lower">26</span></label>
+    <label class="cls"><input type="checkbox" checked data-cls="digit"><span class="c-dot" style="background:#d99a2b"></span><span class="c-name">数字</span><span class="c-pool" id="pool-digit">10</span></label>
+    <label class="cls"><input type="checkbox" checked data-cls="sym"><span class="c-dot" style="background:#d9534f"></span><span class="c-name">特殊字符</span><span class="c-pool" id="pool-sym">--</span></label>
+  </div>
+</section>
+
+<!-- ===== 助记设置（助记模式） ===== -->
+<section class="ctl" data-role="mnemonic" hidden aria-label="助记设置">
+  <div class="ctl-title">助记方式</div>
+  <div class="mode-switch" role="group" aria-label="助记方式">
+    <button type="button" class="mode-btn on" data-mtype="phrase">随机短语</button>
+    <button type="button" class="mode-btn" data-mtype="custom">自定义短语</button>
+  </div>
+
+  <!-- A: 随机短语 -->
+  <div data-phrase-ctl>
+    <div class="mnemonic-row">
+      <span class="mnemonic-label">句长</span>
+      <input type="range" class="range" id="word-range" min="4" max="9" value="7" aria-label="助记句槽位数">
+      <span class="len-num mono" id="word-num">7</span>
+    </div>
+    <p class="mnemonic-hint">从内置词表中随机填词，生成一句<b>语法通顺、有画面感的助记句</b>，再经 SHA-256 派生为强密码。句子越荒诞越容易记住（奇异效应）。句长即槽位数，决定实际熵值。</p>
+  </div>
+
+  <!-- B: 自定义短语派生 -->
+  <div data-custom-ctl hidden>
+    <div class="mnemonic-row">
+      <input class="phrase-input" id="custom-phrase" type="text" placeholder="输入只有你知道的秘密短语（请勿使用公开诗句 / 名言 / 歌词）" aria-label="自定义助记短语">
+    </div>
+    <p class="mnemonic-hint">输入你的秘密短语作为助记提示。<span class="warn">切勿使用公开诗句、名言、歌词或他人可猜的句子</span>——公开内容可被逆向，你的秘密性全部来自短语本身的不可猜性。</p>
+  </div>
+
+  <!-- 两种助记方式共用：派生长度 -->
+  <div class="mnemonic-row">
+    <span class="mnemonic-label">派生长度</span>
+    <select class="sep-select" id="derive-len" aria-label="派生密码长度">
+      <option value="12">12</option>
+      <option value="16" selected>16</option>
+      <option value="20">20</option>
+      <option value="24">24</option>
+      <option value="32">32</option>
+    </select>
+    <span class="wordlist-info">短语经 <b>SHA-256</b> 派生为大小写+数字+符号的强密码</span>
+  </div>
+</section>
+
+<!-- ===== 排除易错字符 ===== -->
+<section class="ctl" aria-label="排除易错字符">
+  <div class="ctl-title">排除易错字符</div>
+  <div class="ex-row">
+    <label class="switch"><input type="checkbox" id="ex-ambiguous" checked><span class="slider"></span></label>
+    <span class="ex-label">排除易混淆字符（如 0/O、1/l/I）</span>
+  </div>
+  <p class="ex-hint">开启后生成结果里不会出现容易看错、口述或手抄出错的字符，适合报给客服、写在纸上、跨设备手动输入。（助记短语模式下不适用）</p>
+  <div class="ex-chips" id="ex-chips"></div>
+  <input class="ex-input" id="ex-custom" type="text" placeholder="额外排除字符（可选），例如：@#$，将直接叠加到排除列表" aria-label="自定义排除字符">
+</section>
+
+<!-- ===== 高级 ===== -->
+<section class="ctl" aria-label="高级设置">
+  <div class="ctl-title">高级</div>
+  <div class="adv-grid">
+    <label class="adv-item" data-role="random"><span class="adv-label">每类字符至少 1 个</span>
+      <label class="switch"><input type="checkbox" id="adv-ensure" checked><span class="slider"></span></label>
+    </label>
+    <label class="adv-item"><span class="adv-label">复制后自动清除剪贴板</span>
+      <select id="adv-clip">
+        <option value="0">关闭</option><option value="15">15 秒</option><option value="30" selected>30 秒</option><option value="60">60 秒</option>
+      </select>
+    </label>
+    <label class="adv-item"><span class="adv-label">记录本地历史（仅本次会话）</span>
+      <label class="switch"><input type="checkbox" id="adv-history" checked><span class="slider"></span></label>
+    </label>
+  </div>
+  <details class="sym-edit" data-role="random">
+    <summary>编辑特殊字符池（默认 28 个可打印符号）</summary>
+    <div class="sym-box">
+      <textarea id="sym-pool" spellcheck="false" aria-label="特殊字符池"></textarea>
+      <button type="button" id="sym-reset">恢复默认</button>
+    </div>
+  </details>
+</section>
+</div><!-- /col-right -->
+<!-- ===== 历史 ===== -->
+<section class="ctl full-width" aria-label="历史记录">
+  <div class="ctl-title" style="justify-content:space-between">
+    <span style="display:inline-flex;align-items:center;gap:8px"><span style="display:inline-block;width:4px;height:14px;border-radius:2px;background:var(--accent)"></span>本次会话历史</span>
+    <button type="button" class="hist-clear" id="hist-clear">清空</button>
+  </div>
+  <div id="hist-list"><p class="hist-empty">生成并复制过的密码会出现在这里，仅存在当前浏览器标签页，关闭即销毁。</p></div>
+</section>
+
+<section class="notes full-width">
+  <h3>口径与安全说明</h3>
+  <p>· 随机密码熵值 = 长度 × log₂(字符池大小)，如 16 位 × 全字符集（默认 90 字符）≈ 104 bits。<br>
+  · 助记句熵值 = log₂(模板数) + Σ log₂(各槽位词表大小)，按当前生成句的词性槽位精确计算；句长越长熵值越高。<br>
+  · 自定义短语派生使用 SHA-256，形式熵值为派生长度 × log₂(字符集)，但<b>实际安全性完全取决于你的短语是否不可猜</b>。<br>
+  · 破解时间为数量级估算：假设攻击者以每秒 10<sup>11</sup> 次离线猜测（高性能 GPU 集群），实际在线服务受速率限制会慢得多。<br>
+  · 随机数来自浏览器 <code>crypto.getRandomValues</code>（加密安全随机源），并做拒绝采样消除模偏差；每类字符"至少 1 个"后位置随机洗牌。<br>
+  · 本页面为单文件实现：无后端、无统计脚本、无任何数据上传，可离线打开使用。</p>
+</section>
+
+</div><!-- /main-grid -->
+
+<footer>密码工坊 PassForge · 本地工具 · 更多工具：<a href="../index.html">工具索引</a> <a href="../emoji-hub/index.html">Emoji 大全</a> <a href="../json-tool/index.html">JSON 格式化</a></footer>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ===== 常量 ===== */
+const AMBIGUOUS = "0Oo1lI|`'\"";
+const DEFAULT_SYM = "!@#$%^&*()-_=+[]{};:,.<>?/|~";
+const CUSTOM_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*-_=+";
+const WEAK_LIST = ["123456","123456789","12345678","password","qwerty","12345","1234567","111111","123123","qwerty123","1q2w3e","admin","letmein","welcome","monkey","dragon","iloveyou","sunshine","princess","football","abc123","password1","666666","88888888","000000","1234","passw0rd","qwertyuiop","zxcvbnm"];
+
+const CLASSES = {
+  upper:{chars:"ABCDEFGHIJKLMNOPQRSTUVWXYZ",color:"#2f9e6b"},
+  lower:{chars:"abcdefghijklmnopqrstuvwxyz",color:"#1f7a8c"},
+  digit:{chars:"0123456789",color:"#d99a2b"}
+};
+
+/* ===== 中文助记词表（去重后使用实际大小） ===== */
+const RAW_WORDS = [
+/* 自然 */ "山川","河流","湖泊","海洋","森林","草原","沙漠","雪山","冰川","火山","峡谷","瀑布","洞穴","岛屿","海岸","沙滩","礁石","珊瑚","贝壳","珍珠","琥珀","翡翠","玛瑙","钻石","黄金","白银","青铜","琉璃","陶瓷","玉石","石碑","岩壁","青苔","藤蔓","落叶","花瓣","花蕊","花苞","根茎","种子","嫩芽","枝叶","树梢","年轮","树皮","松果","银杏","枫叶","柳枝","桃花","杏花","梨花","荷花","菊花","梅花","兰花","桂花","茉莉","玫瑰","蔷薇","牡丹",
+/* 天象 */ "彩虹","闪电","雷鸣","雪花","冰雹","雾气","云霞","星辰","月亮","太阳","黎明","黄昏","正午","午夜","春风","秋雨","冬雪","夏蝉","晨露","晚霞","流星","彗星","银河","极光","潮汐","海浪","海风","灯塔","帆船","港口","码头",
+/* 动物 */ "海豚","鲸鱼","鲨鱼","章鱼","鱿鱼","水母","海葵","海胆","海参","海龟","海鸥","海燕","企鹅","鹈鹕","翠鸟","啄木鸟","猫头鹰","百灵","画眉","鹦鹉","八哥","鸽子","燕子","麻雀","喜鹊","乌鸦","黄鹂","白鹭","天鹅","鸳鸯","孔雀","老虎","狮子","豹子","灰狼","狐狸","黑熊","熊猫","大象","长颈鹿","斑马","犀牛","河马","鳄鱼","蟒蛇","蜥蜴","乌龟","兔子","松鼠","刺猬","蝙蝠","老鼠","猫咪","小狗","黄牛","骏马","公鸡","鸭子","白鹅","蜜蜂","蝴蝶",
+/* 昆虫 */ "蜻蜓","蚂蚁","蜘蛛","蜈蚣","蝎子","蚕茧","蝉鸣","螳螂","瓢虫","萤火","蜗牛","蚯蚓","青蛙","蟾蜍","蝌蚪","飞蛾","蚊子","苍蝇","跳蚤","甲虫","金龟","天牛","蚱蜢","蟋蟀","蝈蝈","蟑螂","潮虫","木板","草鞋","斗笠","蓑衣",
+/* 建筑器物 */ "宫殿","庙宇","塔楼","桥梁","城墙","砖瓦","梁柱","门窗","台阶","庭院","花园","喷泉","雕塑","壁画","地毯","窗帘","台灯","书桌","书架","钟表","镜子","梳子","牙刷","毛巾","肥皂","茶杯","茶壶","饭碗","筷子","勺子","锅铲","砧板","菜刀","烤箱","冰箱","空调","电视","音响","耳机","手机","电脑","键盘","鼠标","屏幕","相机","镜头","胶卷","相册","相框","花瓶","烛台","蜡烛","火柴","雨伞","雨衣","雨靴","帽子","围巾","手套",
+/* 食物饮品 */ "米饭","面条","馒头","包子","饺子","馄饨","烧饼","油条","豆浆","牛奶","咖啡","红茶","绿茶","花茶","果汁","可乐","雪碧","啤酒","红酒","白酒","蛋糕","面包","饼干","糖果","巧克力","冰淇淋","布丁","果冻","薯片","坚果","水果",
+/* 情感抽象 */ "快乐","悲伤","愤怒","恐惧","惊讶","厌恶","喜爱","憎恨","思念","回忆","梦想","希望","绝望","勇气","懦弱","坚强","温柔","善良","邪恶","真诚","虚伪","宽容","狭隘","慷慨","吝啬","谦虚","骄傲","勤奋","懒惰","聪明","愚蠢",
+/* 动作行为 */ "奔跑","跳跃","飞翔","游泳","攀登","坠落","旋转","摇摆","颤抖","沉默","呐喊","低语","微笑","哭泣","拥抱","握手","点头","摇头","眨眼","呼吸","心跳","思考","阅读","书写","雕刻","歌唱","弹琴","演奏","倾听","观察","触摸",
+/* 时间空间 */ "昨天","今天","明天","从前","未来","永恒","瞬间","片刻","长久","短暂","远方","近处","上面","下面","左边","右边","中间","外面","里面","前面","后面","东方","西方","南方","北方","中央","边缘","角落","尽头","起点","终点",
+/* 人文艺术 */ "诗歌","散文","小说","戏剧","音乐","绘画","篆刻","建筑","电影","摄影","舞蹈","戏曲","相声","小品","魔术","杂技","武术","太极","瑜伽","冥想","修行","禅意","茶道","花道","书道","剑道","弓道","马术","赛车","航海","登山",
+/* 人物角色 */ "国王","王子","公主","骑士","法师","精灵","巨人","矮人","凤凰","独角兽","诗人","画家","音乐家","科学家","医生","教师","学生","工人","农民","商人","士兵","警察","厨师","司机","飞行员","水手","猎人","渔夫","裁缝","木匠","铁匠",
+/* 日常物品 */ "闹钟","钱包","背包","眼镜","围巾","袜子","鞋子","衬衫","裙子","外套","戒指","项链","耳环","手表","拐杖","轮椅","婴儿车","购物车","雨伞","雨衣","雨靴","帽子",
+/* 交通科技 */ "自行车","摩托车","汽车","公交车","火车","地铁","飞机","轮船","火箭","卫星","机器人","无人机","摄像头","投影仪","打印机","扫描仪","路由器","充电器","充电宝","硬盘","音箱","麦克风","耳机","电话","平板",
+/* 文具办公 */ "钢笔","铅笔","橡皮","尺子","圆规","剪刀","胶水","胶带","订书机","回形针","文件夹","信封","邮票","报纸","杂志","书籍","画册","日历","名片","贺卡","票据","证书","奖杯","奖牌","徽章","旗帜",
+/* 常用动词 */ "吃","喝","看","听","说","读","写","走","跑","跳","飞","游","睡","醒","笑","哭","爱","恨","想","忘","记","送","拿","放","推","拉","打","踢","扔","接","抓","举","抬","扛","背","抱","搂","摸","拍","敲","踩","踏","蹲","跪","坐","站","躺","趴","等","去","来","进","出","上","下","过","回","到","离","开","关","停","买","卖","付","收","找","换","借","还","租","抢","偷","保护","攻击","逃跑","追赶","寻找","发现","丢失","获得","拥有","放弃","坚持","选择","决定","改变","保持","继续","停止","开始","结束","完成","失败","成功","努力","竞争","合作","帮助","支持","反对","同意","拒绝","接受","相信","怀疑","理解","解释","说明","描述","表达","传递","分享","承担","负责","履行","执行",
+/* 常用形容词 */ "大","小","高","低","长","短","宽","窄","厚","薄","重","轻","快","慢","新","旧","好","坏","美","丑","香","臭","甜","苦","辣","酸","咸","冷","热","暖","凉","干","湿","硬","软","深","浅","远","近","明","暗","强","弱","富","穷","忙","闲","累","舒服","难受","开心","难过","激动","平静","紧张","放松","自信","自卑","胆小","诚实","温柔","暴躁","热情","冷漠","开朗","内向","活泼","安静","调皮","可爱","讨厌","漂亮","英俊","优雅","高贵","伟大","平凡","神奇","特别","重要","必要","完整","完美","清晰","模糊","准确","真实","公开","秘密","正式","严肃","成熟","幼稚","古老","年轻","时尚","传统","现代","浪漫","理想","梦幻",
+/* 地点场所 */ "山顶","海底","天空","城市","乡村","学校","医院","商店","公园","图书馆","电影院","餐厅","厨房","卧室","客厅","花园","河边","湖畔","海边","悬崖","洞穴","街道","小巷","广场","车站","机场","港口","码头","田野","果园","菜园","牧场","农场","工厂","仓库","实验室","办公室","教室","宿舍","食堂","阳台","屋顶","地下室","走廊","楼梯","电梯","大门","窗户","墙壁","地板",
+/* 数量副词 */ "一","二","三","四","五","六","七","八","九","十","两","几","许多","无数","半","满","轻轻","悄悄","慢慢","飞快","突然","终于","依然","仿佛","忽然","渐渐","常常","永远","已经","正在","将要","立刻","马上","偶尔","经常","总是","也许","大概","的确","确实","恐怕","难道","究竟","简直","几乎","完全","仅仅","非常","十分","极其","格外","更加"
+];
+const WORDLIST = [...new Set(RAW_WORDS)];
+
+/* ===== 词性分类词表（均为 WORDLIST 子集） ===== */
+const VERBS = ["奔跑","跳跃","飞翔","游泳","攀登","坠落","旋转","摇摆","颤抖","沉默","呐喊","低语","微笑","哭泣","拥抱","握手","点头","摇头","眨眼","呼吸","心跳","思考","阅读","书写","雕刻","歌唱","弹琴","演奏","倾听","观察","触摸","吃","喝","看","听","说","读","写","走","跑","跳","飞","游","睡","醒","笑","哭","爱","恨","想","忘","记","送","拿","放","推","拉","打","踢","扔","接","抓","举","抬","扛","背","抱","搂","摸","拍","敲","踩","踏","蹲","跪","坐","站","躺","趴","等","去","来","进","出","上","下","过","回","到","离","开","关","停","买","卖","付","收","找","换","借","还","租","抢","偷","保护","攻击","逃跑","追赶","寻找","发现","丢失","获得","拥有","放弃","坚持","选择","决定","改变","保持","继续","停止","开始","结束","完成","失败","成功","努力","竞争","合作","帮助","支持","反对","同意","拒绝","接受","相信","怀疑","理解","解释","说明","描述","表达","传递","分享","承担","负责","履行","执行"];
+const ADJECTIVES = ["快乐","悲伤","愤怒","恐惧","惊讶","厌恶","喜爱","憎恨","温柔","善良","邪恶","真诚","虚伪","宽容","狭隘","慷慨","吝啬","谦虚","骄傲","勤奋","懒惰","聪明","愚蠢","勇敢","懦弱","坚强","大","小","高","低","长","短","宽","窄","厚","薄","重","轻","快","慢","新","旧","好","坏","美","丑","香","臭","甜","苦","辣","酸","咸","冷","热","暖","凉","干","湿","硬","软","深","浅","远","近","明","暗","强","弱","富","穷","忙","闲","累","舒服","难受","开心","难过","激动","平静","紧张","放松","自信","自卑","胆小","诚实","暴躁","热情","冷漠","开朗","内向","活泼","安静","调皮","可爱","讨厌","漂亮","英俊","优雅","高贵","伟大","平凡","神奇","特别","重要","必要","完整","完美","清晰","模糊","准确","真实","公开","秘密","正式","严肃","成熟","幼稚","古老","年轻","时尚","传统","现代","浪漫","理想","梦幻"];
+const ADVERBS = ["轻轻","悄悄","慢慢","飞快","突然","终于","依然","仿佛","忽然","渐渐","常常","永远","已经","正在","将要","立刻","马上","偶尔","经常","总是","的确","确实","简直","几乎","完全","仅仅","非常","十分","极其","格外","更加","大声","低声","用力","拼命","尽情","默默","静静","匆匆","缓缓","徐徐","暗自","欣然","坦然","毅然","猛然","骤然","悠然","怡然","泰然"];
+const PLACES = ["山顶","海底","天空","森林","草原","沙漠","雪山","冰川","火山","峡谷","瀑布","岛屿","海岸","沙滩","城市","乡村","学校","医院","商店","公园","图书馆","电影院","餐厅","厨房","卧室","客厅","花园","河边","湖畔","海边","悬崖","洞穴","街道","小巷","广场","车站","机场","港口","码头","田野","果园","菜园","牧场","农场","工厂","仓库","实验室","办公室","教室","宿舍","食堂","阳台","屋顶","地下室","走廊","楼梯","电梯","大门","远方","近处","上面","下面","中间","外面","里面","前面","后面","东方","西方","南方","北方","中央","边缘","角落","尽头"];
+/* 名词 = 总词表排除动词/形容词/副词/地点 */
+const _nonNoun = new Set([...VERBS, ...ADJECTIVES, ...ADVERBS, ...PLACES]);
+const NOUNS = WORDLIST.filter(w => !_nonNoun.has(w));
+const POOL_MAP = { a: ADJECTIVES, n: NOUNS, v: VERBS, d: ADVERBS, p: PLACES };
+
+/* ===== 状态 ===== */
+const state = {
+  mode:"random",          /* random | mnemonic */
+  mtype:"phrase",         /* phrase | custom */
+  length:16, ensureEach:true, historyOn:true,
+  cls:{upper:true, lower:true, digit:true, sym:true},
+  excludeAmbiguous:true, customExclude:"",
+  symPool:DEFAULT_SYM, batch:1, clipSeconds:30, hidden:false,
+  wordCount:7, separator:"-",
+  customPhrase:"", deriveLength:16, currentMnemonic:""
+};
+let history = [];
+try{ const h = sessionStorage.getItem("passforge_hist"); if(h) history = JSON.parse(h) || []; }catch(e){}
+
+/* ===== 工具 ===== */
+function secureRandomInt(max){
+  const limit = Math.floor(0x100000000 / max) * max;
+  const buf = new Uint32Array(1);
+  let x;
+  do{ crypto.getRandomValues(buf); x = buf[0]; }while(x >= limit);
+  return x % max;
+}
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){ const j=secureRandomInt(i+1); const t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+function dedupe(arr){ return [...new Set(arr)]; }
+
+/* 字符池 */
+function classChars(name){
+  if(name==="sym") return dedupe(state.symPool.split(""));
+  return CLASSES[name].chars.split("");
+}
+function buildExcludeSet(){
+  const ex = new Set();
+  if(state.excludeAmbiguous) for(const c of AMBIGUOUS) ex.add(c);
+  for(const c of state.customExclude) ex.add(c);
+  return ex;
+}
+function buildPool(){
+  const ex = buildExcludeSet();
+  const names = ["upper","lower","digit","sym"].filter(n=>state.cls[n]);
+  let pool = [];
+  for(const n of names) for(const c of classChars(n)) if(!ex.has(c)) pool.push(c);
+  return dedupe(pool);
+}
+function buildCustomCharset(){
+  const ex = buildExcludeSet();
+  return CUSTOM_CHARSET.split("").filter(c=>!ex.has(c));
+}
+
+/* ===== 生成：随机密码 ===== */
+function generateOne(){
+  const ex = buildExcludeSet();
+  const names = ["upper","lower","digit","sym"].filter(n=>state.cls[n]);
+  const pool = dedupe(names.flatMap(n=>classChars(n).filter(c=>!ex.has(c))));
+  if(pool.length===0) return null;
+  const chars = [];
+  if(state.ensureEach && names.length>0){
+    for(const n of names){
+      const cs = classChars(n).filter(c=>!ex.has(c));
+      if(cs.length) chars.push(cs[secureRandomInt(cs.length)]);
+    }
+  }
+  while(chars.length < state.length) chars.push(pool[secureRandomInt(pool.length)]);
+  return shuffle(chars).join("");
+}
+
+/* ===== 句式模板（按槽位数分组，{a}=形 {n}=名 {v}=动 {d}=副 {p}=地） ===== */
+const MNEMONIC_TEMPLATES = {
+  4: ["{a}的{n}{v}{n}","在{p}{n}{v}{n}","{n}{d}{v}{n}"],
+  5: ["{a}的{n}{d}{v}{n}","在{p}{a}的{n}{v}{n}","{n}{d}{v}{a}的{n}","{n}和{n}{d}{v}{p}"],
+  6: ["{a}的{n}{d}{v}着{a}的{n}","在{p}{a}的{n}{d}{v}着{n}","{n}和{n}在{p}{d}{v}着{n}","{a}的{n}{v}{a}的{n}在{p}"],
+  7: ["{a}的{n}{d}{v}着{a}的{n}在{p}","在{p}{a}的{n}{d}{v}着{a}的{n}","{n}和{n}在{p}{d}{v}着{a}的{n}"],
+  8: ["在{p}{a}的{n}{d}{v}着{a}的{n}{d}{v}","{a}的{n}{d}{v}着{a}的{n}在{p}{d}{v}","{n}和{n}在{p}{d}{v}着{a}的{n}{d}{v}"],
+  9: ["在{p}{a}的{n}{d}{v}着{a}的{n}{d}{v}着{n}","{a}的{n}{d}{v}着{a}的{n}在{p}{d}{v}着{n}"]
+};
+
+/* 当前生成句所用的槽位类型（用于精确计算熵值） */
+let currentSlots = [];
+
+/* ===== 生成：随机助记句（句式模板 + 词性填词） ===== */
+function generateMnemonicPhrase(){
+  const n = state.wordCount;
+  const group = MNEMONIC_TEMPLATES[n] || MNEMONIC_TEMPLATES[7];
+  const tpl = group[secureRandomInt(group.length)];
+  currentSlots = [...tpl.matchAll(/\{([anvdp])\}/g)].map(m => m[1]);
+  return tpl.replace(/\{([anvdp])\}/g, (_, tag) => {
+    const pool = POOL_MAP[tag];
+    return pool[secureRandomInt(pool.length)];
+  });
+}
+
+/* 助记句实际熵值 = log2(模板数) + Σ log2(各槽位词表大小) */
+function mnemonicEntropy(){
+  const group = MNEMONIC_TEMPLATES[state.wordCount] || MNEMONIC_TEMPLATES[7];
+  let bits = Math.log2(group.length);
+  for(const tag of currentSlots){ bits += Math.log2(POOL_MAP[tag].length); }
+  return bits;
+}
+
+/* ===== 生成：从助记短语派生强密码（SHA-256） ===== */
+async function deriveFromPhrase(phrase, length){
+  if(!phrase || !phrase.trim()) return "";
+  const charset = buildCustomCharset();
+  if(charset.length===0) return "";
+  const out = [];
+  let counter = 0;
+  const limit = Math.floor(256 / charset.length) * charset.length;
+  while(out.length < length){
+    const data = new TextEncoder().encode(phrase + "::" + counter);
+    const hashBuf = await crypto.subtle.digest("SHA-256", data);
+    const hash = new Uint8Array(hashBuf);
+    for(const b of hash){
+      if(b < limit){
+        out.push(charset[b % charset.length]);
+        if(out.length >= length) break;
+      }
+    }
+    counter++;
+    if(counter > 100) break; /* 安全兜底 */
+  }
+  return out.join("");
+}
+
+/* ===== 统一生成入口 ===== */
+async function generateAll(){
+  /* 助记模式：短语 → SHA-256 派生强密码 */
+  if(state.mode === "mnemonic"){
+    let phrase;
+    if(state.mtype === "phrase"){
+      phrase = generateMnemonicPhrase();
+    } else {
+      phrase = state.customPhrase;
+    }
+    if(!phrase || !phrase.trim()){ state.currentMnemonic = ""; return []; }
+    state.currentMnemonic = phrase;
+    const pwd = await deriveFromPhrase(phrase, state.deriveLength);
+    return pwd ? [pwd] : [];
+  }
+  /* 随机密码模式 */
+  const out = [];
+  for(let i=0;i<state.batch;i++){
+    let p = generateOne();
+    let guard = 0;
+    while(p && WEAK_LIST.includes(p) && guard<3){ p = generateOne(); guard++; }
+    if(p===null) return null;
+    out.push(p);
+  }
+  return out;
+}
+
+/* ===== 熵值与强度 ===== */
+function entropyInfo(){
+  if(state.mode==="mnemonic"){
+    const cs = buildCustomCharset();
+    const formal = state.deriveLength * Math.log2(Math.max(cs.length,1));
+    if(state.mtype==="phrase"){
+      /* 随机短语：实际安全性由助记句熵值决定（按模板槽位精确计算） */
+      return { bits: mnemonicEntropy(), label:"短语熵值", crackable:true };
+    }
+    /* 自定义短语：形式熵值为上限，实际取决于短语不可猜性 */
+    return { bits: formal, label:"派生空间", crackable:false };
+  }
+  const pool = buildPool();
+  return { bits: state.length * Math.log2(Math.max(pool.length,1)), label:"bits 熵值", crackable:true };
+}
+function strengthLabel(bits){
+  if(bits < 40) return {t:"极弱",k:"weak"};
+  if(bits < 60) return {t:"弱",k:"weak"};
+  if(bits < 80) return {t:"中等",k:"mid"};
+  if(bits < 120) return {t:"强",k:"strong"};
+  return {t:"极强",k:"super"};
+}
+function crackText(bits){
+  const rate = 1e11;
+  const logSec = bits*Math.log10(2) - Math.log10(rate);
+  if(logSec <= 0) return "瞬时";
+  const units = [
+    {n:"年",f:Math.log10(31557600)},
+    {n:"天",f:Math.log10(86400)},
+    {n:"小时",f:Math.log10(3600)},
+    {n:"分钟",f:Math.log10(60)}
+  ];
+  for(const u of units){ if(logSec >= u.f){ return "10^"+(logSec-u.f).toFixed(1)+" "+u.n; } }
+  return Math.round(Math.pow(10,logSec)) + " 秒";
+}
+
+/* ===== 渲染 ===== */
+const $ = id => document.getElementById(id);
+let passwords = [];
+
+function render(){
+  const info = entropyInfo();
+  const st = strengthLabel(info.bits);
+  const isCustomEmpty = (state.mode==="mnemonic" && state.mtype==="custom" && (!state.customPhrase || !state.customPhrase.trim()));
+
+  /* 熵值 */
+  $("entropy-val").textContent = isCustomEmpty ? "--" : info.bits.toFixed(1);
+  $("entropy-label").textContent = info.label;
+  const badge = $("strength-badge");
+  badge.textContent = isCustomEmpty ? "--" : st.t;
+  badge.className = "badge " + (isCustomEmpty ? "" : st.k);
+
+  /* 破解时间 */
+  const crackWrap = $("crack-wrap");
+  if(info.crackable && !isCustomEmpty){
+    crackWrap.hidden = false;
+    $("crack-val").textContent = crackText(info.bits);
+  } else {
+    crackWrap.hidden = true;
+  }
+
+  /* 模式提示 */
+  const modeNote = $("mode-note");
+  if(state.mode==="mnemonic" && state.mtype==="custom"){
+    modeNote.hidden = false;
+    modeNote.textContent = isCustomEmpty ? "等待输入短语" : "SHA-256 确定性派生";
+  } else {
+    modeNote.hidden = true;
+  }
+
+  /* 密码显示 */
+  const pwText = $("pw-text");
+  if(isCustomEmpty){
+    pwText.textContent = "请在下方输入你的秘密助记短语";
+    pwText.classList.add("placeholder");
+    pwText.classList.remove("hidden");
+  } else {
+    const shown = passwords.map(p => state.hidden ? "•".repeat(Math.min(p.length,24)) : p);
+    pwText.textContent = shown[0] || "";
+    pwText.classList.remove("placeholder");
+    pwText.classList.toggle("hidden", state.hidden);
+  }
+
+  /* 助记短语显示 */
+  const md = $("mnemonic-display");
+  if(state.mode==="mnemonic" && state.currentMnemonic){
+    md.hidden = false;
+    $("mnemonic-text").textContent = state.currentMnemonic;
+  } else {
+    md.hidden = true;
+  }
+
+  /* 批量列表 */
+  const bw = $("batch-wrap");
+  if(state.mode==="random" && state.batch>1 && passwords.length>1){
+    bw.hidden = false;
+    bw.innerHTML = "";
+    passwords.forEach((p,i)=>{
+      const row = document.createElement("div");
+      row.className = "batch-item";
+      const span = document.createElement("span");
+      span.className = "pw-text mono";
+      span.textContent = state.hidden ? "•".repeat(Math.min(p.length,24)) : p;
+      const btn = document.createElement("button");
+      btn.type="button"; btn.className="mini-copy"; btn.textContent="复制";
+      btn.addEventListener("click", ()=>{ copy(p); });
+      row.appendChild(span); row.appendChild(btn);
+      bw.appendChild(row);
+    });
+  } else { bw.hidden = true; bw.innerHTML = ""; }
+
+  /* 生成按钮文案 */
+  $("btn-gen-text").textContent = (state.mode==="mnemonic" && state.mtype==="custom") ? "重新派生" : "重新生成";
+  /* 批量选择：助记模式隐藏 */
+  $("batch-label").style.display = (state.mode==="mnemonic") ? "none" : "";
+
+  /* 随机模式控件 */
+  document.querySelectorAll('[data-role="random"]').forEach(el=>{
+    el.hidden = (state.mode!=="random");
+  });
+  /* 助记模式控件 */
+  document.querySelectorAll('[data-role="mnemonic"]').forEach(el=>{
+    el.hidden = (state.mode!=="mnemonic");
+  });
+  /* 助记子模式 */
+  document.querySelector('[data-phrase-ctl]').hidden = (state.mtype!=="phrase");
+  document.querySelector('[data-custom-ctl]').hidden = (state.mtype!=="custom");
+  /* 模式按钮状态同步 */
+  document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle("on", b.dataset.mode===state.mode));
+  document.querySelectorAll('[data-mtype]').forEach(b=>b.classList.toggle("on", b.dataset.mtype===state.mtype));
+
+  /* 字符池显示 */
+  $("pool-upper").textContent = classChars("upper").length;
+  $("pool-lower").textContent = classChars("lower").length;
+  $("pool-digit").textContent = classChars("digit").length;
+  $("pool-sym").textContent = state.symPool ? dedupe(state.symPool.split("")).length : 0;
+
+  /* 排除 chips */
+  const exSet = buildExcludeSet();
+  $("ex-chips").innerHTML = "";
+  const show = [...exSet].filter(c=>{
+    return ["upper","lower","digit","sym"].some(n=>state.cls[n] && classChars(n).includes(c));
+  }).slice(0,16);
+  show.forEach(c=>{ const s=document.createElement("span"); s.className="chip"; s.textContent = c===" " ? "空格" : c; $("ex-chips").appendChild(s); });
+
+  /* 预设高亮 */
+  document.querySelectorAll(".preset").forEach(b=>b.classList.toggle("on", +b.dataset.len===state.length));
+
+  renderHistory();
+}
+
+function renderHistory(){
+  const box = $("hist-list");
+  if(!state.historyOn || history.length===0){
+    box.innerHTML = '<p class="hist-empty">'+(state.historyOn ? "生成并复制过的密码会出现在这里，仅存在当前浏览器标签页，关闭即销毁。" : "历史记录已关闭。")+'</p>';
+    return;
+  }
+  box.innerHTML = "";
+  history.forEach(h=>{
+    const row = document.createElement("div");
+    row.className = "hist-item";
+    const span = document.createElement("span");
+    span.className = "pw-text mono"; span.textContent = h;
+    const btn = document.createElement("button");
+    btn.type="button"; btn.className="mini-copy"; btn.textContent="复制";
+    btn.addEventListener("click", ()=>{ copy(h); });
+    row.appendChild(span); row.appendChild(btn);
+    box.appendChild(row);
+  });
+}
+
+/* ===== 复制与剪贴板清除 ===== */
+let clipTimer = null;
+function toast(msg){
+  const t = $("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 2400);
+}
+async function copy(text, record=true){
+  try{ await navigator.clipboard.writeText(text); }
+  catch(e){
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); }catch(_){}
+    ta.remove();
+  }
+  if(state.clipSeconds>0){
+    clearTimeout(clipTimer);
+    clipTimer = setTimeout(()=>{ navigator.clipboard.writeText("").catch(()=>{}); }, state.clipSeconds*1000);
+    toast("已复制 · "+state.clipSeconds+" 秒后自动清除剪贴板");
+  } else { toast("已复制"); }
+  if(record && state.historyOn){
+    history = [text, ...history.filter(x=>x!==text)].slice(0,10);
+    try{ sessionStorage.setItem("passforge_hist", JSON.stringify(history)); }catch(e){}
+    renderHistory();
+  }
+}
+
+/* ===== 事件 ===== */
+async function regenerate(){
+  const out = await generateAll();
+  if(out===null){
+    passwords = [];
+    $("pw-text").textContent = "字符池为空，请至少启用一类字符";
+    $("pw-text").classList.add("placeholder");
+    $("entropy-val").textContent = "0";
+    $("crack-val").textContent = "--";
+    const b = $("strength-badge"); b.textContent = "--"; b.className="badge";
+    renderHistory();
+    return;
+  }
+  passwords = out;
+  render();
+}
+function update(fn){ fn(); regenerate(); }
+
+/* 模式切换 */
+document.querySelectorAll('[data-mode]').forEach(btn=>btn.addEventListener("click", ()=>{
+  state.mode = btn.dataset.mode;
+  document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle("on", b===btn));
+  regenerate();
+}));
+/* 助记子模式切换 */
+document.querySelectorAll('[data-mtype]').forEach(btn=>btn.addEventListener("click", ()=>{
+  state.mtype = btn.dataset.mtype;
+  document.querySelectorAll('[data-mtype]').forEach(b=>b.classList.toggle("on", b===btn));
+  regenerate();
+}));
+
+/* 长度 */
+$("len-range").addEventListener("input", e=>{ state.length = +e.target.value; $("len-num").textContent = state.length; regenerate(); });
+document.querySelectorAll(".preset").forEach(b=>b.addEventListener("click", ()=>{
+  state.length = +b.dataset.len;
+  $("len-range").value = state.length;
+  $("len-num").textContent = state.length;
+  regenerate();
+}));
+
+/* 字符集 */
+document.querySelectorAll("#cls-grid input").forEach(inp=>inp.addEventListener("change", ()=>{
+  state.cls[inp.dataset.cls] = inp.checked;
+  inp.closest(".cls").classList.toggle("off", !inp.checked);
+  regenerate();
+}));
+
+/* 排除易错 */
+$("ex-ambiguous").addEventListener("change", e=>update(()=>{ state.excludeAmbiguous = e.target.checked; }));
+$("ex-custom").addEventListener("input", e=>update(()=>{ state.customExclude = e.target.value; }));
+
+/* 助记：句长 */
+$("word-range").addEventListener("input", e=>{ state.wordCount = +e.target.value; $("word-num").textContent = state.wordCount; regenerate(); });
+/* 助记：自定义短语 */
+$("custom-phrase").addEventListener("input", e=>{ state.customPhrase = e.target.value; regenerate(); });
+/* 助记：派生长度 */
+$("derive-len").addEventListener("change", e=>update(()=>{ state.deriveLength = +e.target.value; }));
+/* 复制助记短语（不记入历史） */
+$("btn-copy-mnemonic").addEventListener("click", ()=>{ if(state.currentMnemonic) copy(state.currentMnemonic, false); });
+
+/* 高级 */
+$("adv-ensure").addEventListener("change", e=>update(()=>{ state.ensureEach = e.target.checked; }));
+$("adv-clip").addEventListener("change", e=>{ state.clipSeconds = +e.target.value; });
+$("adv-history").addEventListener("change", e=>{ state.historyOn = e.target.checked; renderHistory(); });
+$("batch-count").addEventListener("change", e=>update(()=>{ state.batch = +e.target.value; }));
+$("sym-pool").value = state.symPool;
+$("sym-pool").addEventListener("input", e=>update(()=>{ state.symPool = e.target.value; }));
+$("sym-reset").addEventListener("click", ()=>{ $("sym-pool").value = DEFAULT_SYM; update(()=>{ state.symPool = DEFAULT_SYM; }); });
+
+/* 结果区 */
+$("btn-gen").addEventListener("click", regenerate);
+$("btn-toggle").addEventListener("click", ()=>{ state.hidden = !state.hidden; render(); });
+$("btn-copy").addEventListener("click", ()=>{ if(passwords[0]) copy(passwords[0]); else toast("暂无可复制的密码"); });
+$("hist-clear").addEventListener("click", ()=>{ history = []; try{ sessionStorage.removeItem("passforge_hist"); }catch(e){} renderHistory(); });
+
+/* 空格 / 回车快捷再生（输入框聚焦时除外） */
+document.addEventListener("keydown", e=>{
+  if(e.key!==" " && e.key!=="Enter") return;
+  const tag = (e.target.tagName||"").toLowerCase();
+  if(tag==="input" || tag==="textarea" || tag==="select" || tag==="button") return;
+  e.preventDefault(); regenerate();
+});
+
+/* 初始 */
+$("custom-phrase").value = state.customPhrase;
+regenerate();
+</script>
+
+<section class="seo-section" style="background:var(--card);border-top:1px solid var(--line);padding:36px 16px 8px">
+<div style="max-width:1080px;margin:0 auto">
+<h2 style="font-size:22px;margin:0 0 6px;color:var(--ink)">在线随机密码生成器：本地生成、实时熵值、零上传</h2>
+<p style="color:var(--sub);font-size:14.5px;max-width:860px;line-height:1.8">纯本地随机密码生成器：长度可调、四类字符集自由组合、一键排除易错字符，支持助记密码模式（随机短语 / 自定义短语派生），实时显示熵值与估算破解时间，剪贴板自动清除。所有计算在浏览器内完成，数据零上传，断网可用。</p>
+<div style="margin-top:18px">
+<details style="border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:8px;background:#fff"><summary style="cursor:pointer;font-weight:600">密码生成器安全吗？密码会被上传吗？</summary><p style="margin:8px 0 0;color:var(--sub)">安全。随机数由浏览器 Web Crypto API 加密安全随机源生成，页面不发出任何网络请求，数据零上传，断网也能用。原理详见 <a href="blog/local-generation.html" style="color:var(--accent)">纯本地密码生成原理</a>。</p></details>
+<details style="border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:8px;background:#fff"><summary style="cursor:pointer;font-weight:600">密码的熵值是什么意思？</summary><p style="margin:8px 0 0;color:var(--sub)">熵值衡量密码随机性，每增加 1 位熵破解难度翻倍。生成时实时显示熵值与估算破解时间，常见密码的熵值对比见 <a href="blog/password-entropy.html" style="color:var(--accent)">密码熵值对照表</a>。</p></details>
+<details style="border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:8px;background:#fff"><summary style="cursor:pointer;font-weight:600">什么是助记密码模式？</summary><p style="margin:8px 0 0;color:var(--sub)">从随机词库选 4-6 个单词组成短语，或用自定义短语经 SHA-256 派生，好记且熵值高，适合需要人工输入的场景。</p></details>
+<details style="border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin-bottom:8px;background:#fff"><summary style="cursor:pointer;font-weight:600">我的密码是不是太弱了？</summary><p style="margin:8px 0 0;color:var(--sub)">如果密码是生日、姓名、键盘序列或常见弱密码，请立即更换。高危弱密码清单见 <a href="blog/weak-passwords.html" style="color:var(--accent)">弱密码 Top100</a>。</p></details>
+</div>
+</div>
+</section>
+
+<footer style="background:#132438;color:#8aa3bd;padding:18px 16px;font-size:13px;margin-top:20px">
+<div style="max-width:1080px;margin:0 auto;display:flex;flex-wrap:wrap;gap:6px 18px">
+<span style="color:#8be9c9;font-weight:600">密码工坊 PassForge</span>
+<a href="https://tools.dutycode.com/" style="color:#8aa3bd;text-decoration:none">工具索引</a>
+<a href="blog/password-entropy.html" style="color:#8aa3bd;text-decoration:none">密码熵值对照</a>
+<a href="blog/local-generation.html" style="color:#8aa3bd;text-decoration:none">本地生成原理</a>
+<a href="blog/weak-passwords.html" style="color:#8aa3bd;text-decoration:none">弱密码 Top100</a>
+<a href="https://tools.dutycode.com/emoji-hub/" style="color:#8aa3bd;text-decoration:none">Emoji 大全</a>
+<a href="https://tools.dutycode.com/json-tool/" style="color:#8aa3bd;text-decoration:none">JSON 格式化工具</a>
+</div>
+</footer>
+</body>
+</html>

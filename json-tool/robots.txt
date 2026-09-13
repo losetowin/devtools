@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tools.dutycode.com/json-tool/sitemap.xml
